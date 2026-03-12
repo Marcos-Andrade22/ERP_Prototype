@@ -49,26 +49,17 @@ export default function MlbTable() {
     }
 
     function confirmChanges() {
-        setOriginalItems(items);
+        setOriginalItems([...items]);
         setHasChanges(false);
         setIsModalOpen(false);
     }
 
     return (
         <>
-            {/* Botão principal */}
+            {/* Botão Principal */}
             <button
                 onClick={() => setIsModalOpen(true)}
-                style={{
-                    background: '#28a745',
-                    color: 'white',
-                    border: 'none',
-                    padding: '12px 24px',
-                    borderRadius: 6,
-                    fontSize: 16,
-                    cursor: 'pointer',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                }}
+                className="bg-green-500 hover:bg-green-600 active:bg-green-700 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer mb-12 mx-auto block"
             >
                 Gerenciar MLB
             </button>
@@ -76,178 +67,196 @@ export default function MlbTable() {
             {/* Modal */}
             {isModalOpen && (
                 <div
-                    style={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        background: 'rgba(0,0,0,0.5)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        zIndex: 1000,
-                        padding: 20,
-                    }}
+                    className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-6"
                     onClick={() => !hasChanges && setIsModalOpen(false)}
                 >
                     <div
-                        style={{
-                            background: 'white',
-                            borderRadius: 12,
-                            maxWidth: '90vw',
-                            maxHeight: '90vh',
-                            width: 1200,
-                            height: 700,
-                            overflow: 'hidden',
-                            boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
-                        }}
-                        onClick={e => e.stopPropagation()}
+                        className="bg-white rounded-3xl shadow-2xl max-w-7xl max-h-[95vh] w-full h-[90vh] flex flex-col overflow-hidden"
+                        onClick={(e) => e.stopPropagation()}
                     >
-                        {/* Header */}
-                        <div style={{ background: '#f8f9fa', padding: 20, borderBottom: '1px solid #dee2e6' }}>
-                            <div style={{ display: 'flex', gap: 12, alignItems: 'center', justifyContent: 'space-between' }}>
-                                <h2 style={{ margin: 0 }}>Gerenciar Itens MLB</h2>
-                                <div style={{ display: 'flex', gap: 8 }}>
+                        {/* Header do Modal */}
+                        <div className="bg-gradient-to-r from-gray-50 to-blue-50 p-8 border-b-2 border-gray-200 flex-shrink-0">
+                            <div className="flex items-center justify-between">
+                                <h2 className="text-3xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+                                    Gerenciar Itens MLB
+                                </h2>
+                                <div className="flex items-center gap-3">
                                     {hasChanges && (
                                         <button
                                             onClick={confirmChanges}
-                                            style={{
-                                                background: '#28a745',
-                                                color: 'white',
-                                                border: 'none',
-                                                padding: '8px 16px',
-                                                borderRadius: 4,
-                                                cursor: 'pointer',
-                                                fontWeight: 'bold',
-                                            }}
+                                            className="bg-green-500 hover:bg-green-600 active:bg-green-700 text-white px-6 py-3 rounded-xl font-bold shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer"
                                         >
-                                            ✅ Confirmar
+                                            ✅ Confirmar Alterações
                                         </button>
                                     )}
                                     <button
                                         onClick={addItem}
                                         disabled={hasChanges}
-                                        style={{
-                                            background: hasChanges ? '#ccc' : '#007bff',
-                                            color: 'white',
-                                            border: 'none',
-                                            padding: '8px 16px',
-                                            borderRadius: 4,
-                                            cursor: hasChanges ? 'not-allowed' : 'pointer',
-                                        }}
+                                        className={`px-6 py-3 rounded-xl font-semibold text-white shadow-md hover:shadow-lg transition-all duration-200 flex items-center gap-2 ${hasChanges
+                                            ? 'bg-gray-400 cursor-not-allowed'
+                                            : 'bg-blue-500 hover:bg-blue-600 active:bg-blue-700 cursor-pointer'
+                                            }`}
                                     >
-                                        + Adicionar
+                                        <span>+</span> Adicionar Item
                                     </button>
                                     <button
                                         onClick={() => setIsModalOpen(false)}
                                         disabled={hasChanges}
-                                        style={{
-                                            background: hasChanges ? '#ccc' : '#6c757d',
-                                            color: 'white',
-                                            border: 'none',
-                                            padding: '8px 16px',
-                                            borderRadius: 4,
-                                            cursor: hasChanges ? 'not-allowed' : 'pointer',
-                                        }}
+                                        className={`px-6 py-3 rounded-xl font-semibold text-white shadow-md hover:shadow-lg transition-all duration-200 ${hasChanges
+                                            ? 'bg-gray-400 cursor-not-allowed'
+                                            : 'bg-gray-500 hover:bg-gray-600 active:bg-gray-700 cursor-pointer'
+                                            }`}
                                     >
                                         Fechar
                                     </button>
                                 </div>
                             </div>
                             {hasChanges && (
-                                <div style={{ marginTop: 8, padding: 8, background: '#d1ecf1', borderRadius: 4, fontSize: 14, color: '#0c5460' }}>
-                                    Você tem mudanças não salvas. Clique em "Confirmar" para salvar.
+                                <div className="mt-4 p-4 bg-blue-50 border-2 border-blue-200 rounded-2xl text-sm font-medium text-blue-800 animate-pulse">
+                                    🔄 Você tem alterações não salvas. Use "Confirmar" para salvar antes de fechar.
                                 </div>
                             )}
                         </div>
 
-                        {/* Tabela */}
-                        <div style={{ height: 'calc(100% - 80px)', overflow: 'auto' }}>
-                            <table style={{ borderCollapse: 'collapse', width: '100%' }}>
-                                <thead>
-                                    <tr style={{ background: '#f8f9fa', position: 'sticky', top: 0, zIndex: 10 }}>
-                                        <th style={{ padding: 12, border: '1px solid #dee2e6', textAlign: 'left' }}>MLB</th>
-                                        <th style={{ padding: 12, border: '1px solid #dee2e6', textAlign: 'center', width: 80 }}>EAN</th>
-                                        <th style={{ padding: 12, border: '1px solid #dee2e6', textAlign: 'center', width: 90 }}>Cubagem</th>
-                                        <th style={{ padding: 12, border: '1px solid #dee2e6', textAlign: 'center', width: 100 }}>Otimizado</th>
-                                        <th style={{ padding: 12, border: '1px solid #dee2e6', textAlign: 'center', width: 70 }}>Full</th>
-                                        <th style={{ padding: 12, border: '1px solid #dee2e6', textAlign: 'center', width: 110 }}>Patrocinados</th>
-                                        <th style={{ padding: 12, border: '1px solid #dee2e6', textAlign: 'center', width: 70 }}>Clipe</th>
-                                        <th style={{ padding: 12, border: '1px solid #dee2e6', textAlign: 'center', width: 90 }}>Revisado</th>
-                                        <th style={{ padding: 12, border: '1px solid #dee2e6', textAlign: 'center', width: 100 }}>Ações</th>
+                        {/* Tabela Scrollável */}
+                        <div className="flex-1 overflow-auto">
+                            <table className="w-full table-fixed">
+                                <thead className="sticky top-0 bg-gradient-to-r from-gray-100 to-gray-200 z-20 shadow-sm">
+                                    <tr>
+                                        <th className="w-72 p-4 text-left border-b-2 border-gray-300 font-bold text-gray-700 uppercase tracking-wide text-sm">
+                                            MLB
+                                        </th>
+                                        <th className="w-20 p-4 text-center border-b-2 border-gray-300 font-bold text-gray-700 text-xs">
+                                            EAN
+                                        </th>
+                                        <th className="w-24 p-4 text-center border-b-2 border-gray-300 font-bold text-gray-700 text-xs">
+                                            Cubagem
+                                        </th>
+                                        <th className="w-28 p-4 text-center border-b-2 border-gray-300 font-bold text-gray-700 text-xs">
+                                            Otimizado
+                                        </th>
+                                        <th className="w-20 p-4 text-center border-b-2 border-gray-300 font-bold text-gray-700 text-xs">
+                                            Full
+                                        </th>
+                                        <th className="w-32 p-4 text-center border-b-2 border-gray-300 font-bold text-gray-700 text-xs">
+                                            Patrocinados
+                                        </th>
+                                        <th className="w-20 p-4 text-center border-b-2 border-gray-300 font-bold text-gray-700 text-xs">
+                                            Clipe
+                                        </th>
+                                        <th className="w-24 p-4 text-center border-b-2 border-gray-300 font-bold text-gray-700 text-xs">
+                                            Revisado
+                                        </th>
+                                        <th className="w-32 p-4 text-center border-b-2 border-gray-300 font-bold text-gray-700 text-xs">
+                                            Ações
+                                        </th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    {items.map(item => (
-                                        <tr key={item.id} style={{ background: item.isEditing ? '#fff3cd' : 'white' }}>
-                                            <td style={{ padding: 12, border: '1px solid #dee2e6' }}>
+                                <tbody className="divide-y divide-gray-200">
+                                    {items.map((item) => (
+                                        <tr
+                                            key={item.id}
+                                            className={`transition-all duration-200 hover:bg-gray-50 ${item.isEditing ? 'bg-yellow-50 border-2 border-yellow-200' : ''
+                                                }`}
+                                        >
+                                            <td className="p-4">
                                                 <input
                                                     type="text"
                                                     value={item.valor}
                                                     disabled={!item.isEditing}
-                                                    onChange={e =>
-                                                        setItems(curr =>
-                                                            curr.map(it =>
+                                                    onChange={(e) =>
+                                                        setItems((curr) =>
+                                                            curr.map((it) =>
                                                                 it.id === item.id ? { ...it, valor: e.target.value } : it
                                                             )
                                                         )
                                                     }
-                                                    style={{
-                                                        width: '100%',
-                                                        padding: 8,
-                                                        border: item.isEditing ? '1px solid #007bff' : '1px solid #ced4da',
-                                                        background: item.isEditing ? 'white' : '#f8f9fa',
-                                                        borderRadius: 4,
-                                                    }}
+                                                    className={`w-full px-4 py-3 rounded-xl font-mono text-lg transition-all duration-200 border-2 focus:outline-none focus:ring-4 ${item.isEditing
+                                                        ? 'border-blue-400 ring-blue-200 bg-white shadow-md ring-4 ring-blue-100'
+                                                        : 'border-gray-300 bg-gray-50 cursor-not-allowed opacity-70'
+                                                        }`}
+                                                    placeholder="Digite o código MLB..."
                                                 />
                                             </td>
-                                            <td style={{ padding: 12, border: '1px solid #dee2e6', textAlign: 'center' }}>
-                                                <input type="checkbox" checked={item.ean} onChange={e => updateFlag(item.id, 'ean', e.target.checked)} />
+                                            <td className="p-4 text-center">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={item.ean}
+                                                    onChange={(e) => updateFlag(item.id, 'ean', e.target.checked)}
+                                                    className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 cursor-pointer"
+                                                    disabled={!item.isEditing}
+                                                />
                                             </td>
-                                            <td style={{ padding: 12, border: '1px solid #dee2e6', textAlign: 'center' }}>
-                                                <input type="checkbox" checked={item.cubagem} onChange={e => updateFlag(item.id, 'cubagem', e.target.checked)} />
+                                            <td className="p-4 text-center">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={item.cubagem}
+                                                    onChange={(e) => updateFlag(item.id, 'cubagem', e.target.checked)}
+                                                    className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 cursor-pointer"
+                                                    disabled={!item.isEditing}
+                                                />
                                             </td>
-                                            <td style={{ padding: 12, border: '1px solid #dee2e6', textAlign: 'center' }}>
-                                                <input type="checkbox" checked={item.otimizado} onChange={e => updateFlag(item.id, 'otimizado', e.target.checked)} />
+                                            <td className="p-4 text-center">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={item.otimizado}
+                                                    onChange={(e) => updateFlag(item.id, 'otimizado', e.target.checked)}
+                                                    className="w-5 h-5 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500 focus:ring-2 cursor-pointer"
+                                                    disabled={!item.isEditing}
+                                                />
                                             </td>
-                                            <td style={{ padding: 12, border: '1px solid #dee2e6', textAlign: 'center' }}>
-                                                <input type="checkbox" checked={item.full} onChange={e => updateFlag(item.id, 'full', e.target.checked)} />
+                                            <td className="p-4 text-center">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={item.full}
+                                                    onChange={(e) => updateFlag(item.id, 'full', e.target.checked)}
+                                                    className="w-5 h-5 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 focus:ring-2 cursor-pointer"
+                                                    disabled={!item.isEditing}
+                                                />
                                             </td>
-                                            <td style={{ padding: 12, border: '1px solid #dee2e6', textAlign: 'center' }}>
-                                                <input type="checkbox" checked={item.patrocinados} onChange={e => updateFlag(item.id, 'patrocinados', e.target.checked)} />
+                                            <td className="p-4 text-center">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={item.patrocinados}
+                                                    onChange={(e) => updateFlag(item.id, 'patrocinados', e.target.checked)}
+                                                    className="w-5 h-5 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500 focus:ring-2 cursor-pointer"
+                                                    disabled={!item.isEditing}
+                                                />
                                             </td>
-                                            <td style={{ padding: 12, border: '1px solid #dee2e6', textAlign: 'center' }}>
-                                                <input type="checkbox" checked={item.clipe} onChange={e => updateFlag(item.id, 'clipe', e.target.checked)} />
+                                            <td className="p-4 text-center">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={item.clipe}
+                                                    onChange={(e) => updateFlag(item.id, 'clipe', e.target.checked)}
+                                                    className="w-5 h-5 text-pink-600 bg-gray-100 border-gray-300 rounded focus:ring-pink-500 focus:ring-2 cursor-pointer"
+                                                    disabled={!item.isEditing}
+                                                />
                                             </td>
-                                            <td style={{ padding: 12, border: '1px solid #dee2e6', textAlign: 'center' }}>
-                                                <input type="checkbox" checked={item.revisado} onChange={e => updateFlag(item.id, 'revisado', e.target.checked)} />
+                                            <td className="p-4 text-center">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={item.revisado}
+                                                    onChange={(e) => updateFlag(item.id, 'revisado', e.target.checked)}
+                                                    className="w-5 h-5 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500 focus:ring-2 cursor-pointer"
+                                                    disabled={!item.isEditing}
+                                                />
                                             </td>
-                                            <td style={{ padding: 12, border: '1px solid #dee2e6', textAlign: 'center' }}>
-                                                <div style={{ display: 'flex', gap: 4, justifyContent: 'center' }}>
+                                            <td className="p-4 text-center">
+                                                <div className="flex gap-2 justify-center">
                                                     <button
                                                         onClick={() => toggleEdit(item.id)}
-                                                        style={{
-                                                            background: 'none',
-                                                            border: 'none',
-                                                            fontSize: 18,
-                                                            cursor: 'pointer',
-                                                            color: item.isEditing ? '#dc3545' : '#007bff',
-                                                        }}
-                                                        title={item.isEditing ? 'Cancelar' : 'Editar'}
+                                                        className={`p-2 rounded-full transition-all duration-200 hover:scale-110 cursor-pointer shadow-md ${item.isEditing
+                                                            ? 'bg-red-500 hover:bg-red-600 text-white'
+                                                            : 'bg-blue-500 hover:bg-blue-600 text-white'
+                                                            }`}
+                                                        title={item.isEditing ? 'Cancelar edição (✕)' : 'Editar linha (🖉)'}
                                                     >
                                                         {item.isEditing ? '✕' : '🖉'}
                                                     </button>
                                                     <button
                                                         onClick={() => deleteItem(item.id)}
-                                                        style={{
-                                                            background: 'none',
-                                                            border: 'none',
-                                                            fontSize: 18,
-                                                            cursor: 'pointer',
-                                                            color: '#dc3545',
-                                                        }}
-                                                        title="Excluir"
+                                                        className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-full hover:scale-110 transition-all duration-200 cursor-pointer shadow-md"
+                                                        title="Excluir item (🗑️)"
                                                     >
                                                         🗑️
                                                     </button>
