@@ -1,4 +1,4 @@
-import type { EstoqueItem } from "../../../entities/EstoqueItem";
+import type { EstoqueItem } from "../model/EstoqueItem";
 
 export const parseTabelasSi = async (): Promise<EstoqueItem[]> => {
   // Simula fetch do seu tabelas_si.tab[file:95]
