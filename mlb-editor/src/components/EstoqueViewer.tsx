@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { parseTabelasSi } from '../utils/estoqueParser';
-import type { EstoqueItem } from '../utils/estoqueParser'
+import { parseTabelasSi } from '../features/estoque/lib/parser';
+import type { EstoqueItem } from '../features/estoque/lib/parser'
 
 export default function EstoqueViewer() {
   const [data, setData] = useState<EstoqueItem[]>([]);

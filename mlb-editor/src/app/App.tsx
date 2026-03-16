@@ -1,5 +1,5 @@
-import EstoqueViewer from './components/EstoqueViewer';
-import MlbTable from './components/MlbTable';
+import EstoqueViewer from '../components/EstoqueViewer';
+import MlbTable from '../components/MlbTable';
 import 'lucide-react';  // ícones
 
 function App() {
