@@ -1,71 +1,40 @@
+// EstoqueItem.ts
 export interface EstoqueItem {
-  // Dados básicos (.tab col 0-6)
-  item: string;
-  unid: string; // "pç", "par", "jg", "kit"
-  marca: string;
-  tipoRetentor: string;
-  material: string;
-  setor: string;
-  local: string;
-
-  // Dados adicionais
-  marcaModelo: string; // "Marca | Modelo"
-  dataFabricacao: string;
-  versaoMotor: string;
-  fornecedor: string;
-  quantidadeMinima: number;
-  mlb: string;
-
-  // === SEÇÃO MEDIDAS ===
-  medidaInterna: string;
-  medidaExterna: string;
-  altura: string;
-  pesoTotal: string;
-  historico: string; // Concat cols finais
-
-  // === VALORES COMERCIAIS ===
-  valorUnitarioFixo: string;
-  valorUnitario: string;
-  lucroTipo: "percent" | "valor"; // Radio
-  lucroValor: number;
-  acrecimoPercent: number;
-  valorComercialVenda: string;
-  substituicaoTributariaTipo: "percent" | "valor"; // Radio
-  substituicaoTributariaValor: string;
-
-  // === HISTÓRICO APLICAÇÃO ===
-  observacoesGerais: string;
-  itensSimilaresCompactibilidade: string;
-  aplicacoesPossiveis: string;
-
-  // === IMAGEM ===
-  imagem: string;
-
-  // === MERCADO LIVRE ===
-  situacaoML: string;
-  dataAnuncioML: string;
-  valorML: string;
-
-  // === SITE ===
-  situacaoSite: string;
-  dataAnuncioSite: string;
-  valorSite: string;
-
-  // === CHECKBOXES ===
-  pedir: boolean;
-  promocao: boolean;
-  revisado: boolean;
-  alocarParaSite: boolean;
-  reponerSomar: boolean;
-
-  // Meta
+  Situacao: string;
+  Codigo: string;
+  Item: string;
+  Fabricante: string;
+  Aplicacao: string;
+  Quant: number;
+  Minimo: number;
+  Unid: string;
+  Valorunit: number;
+  Valorfixo: number;
+  Valorcomercial: string;
+  Valorcompra: number;
+  Acrescimo: number;
+  Tipolucro: string;
+  Tipotributo: string;
+  Tipo: string;
+  Setor: string;
+  Pedir: boolean;
+  Posicao: string; // col[72] — ex: "EAN/Ambientado", "EAN/Cubagem/Otimizado"
+  TipoRetentor: string;
+  Material: string;
+  Materialret: string;
+  Local: string;
+  Historico: string;
+  Data_anuncio_site: string;
+  Versao: string;
+  StatusML: string;
+  Revisado: boolean;
+  "MIS::Mensagem simples": string;
+  NCM: string;
+  Marca: string;
+  Desc_anuncio_ML: string;
+  Tributo: number;
+  "Medida Interna": string;
+  "Medida externa": string;
+  "Medida Altura": string;
   rawIndex: number;
-}
-
-export interface ValidationResult {
-  checksum: string;
-  totalItens: number;
-  somaPrecos: string;
-  eixoCount: number;
-  status: "OK" | "ERRO";
 }
