@@ -44,26 +44,26 @@ export function PanelML({ item, handleChange }: Props) {
 
             <div className="flex items-center gap-2 mt-1">
                 <span className="text-[11px] text-gray-700">Alocar para Site:</span>
-                <CheckboxInput
-                    label=""
-                    checked={item.alocarParaSite}
+                <TextInput
+                    label="Alocar para Site:"
+                    value={item.alocarParaSite}
                     onChange={handleChange("alocarParaSite")}
                 />
             </div>
 
             <div className="flex items-center gap-2">
                 <span className="text-[11px] text-gray-700">Repor / Somar:</span>
-                <CheckboxInput
-                    label=""
-                    checked={item.reponerSomar}
-                    onChange={handleChange("reponerSomar")}
+                <TextInput
+                    label="Repor / Somar:"
+                    value={item.reporeSomar}
+                    onChange={handleChange("reporeSomar")}
                 />
             </div>
 
             <div className="flex items-center gap-3 mt-1 pt-2 border-t border-gray-200">
-                <CheckboxInput
-                    label="Revisado"
-                    checked={item.revisado}
+                <TextInput
+                    label="Revisado:"
+                    value={item.revisado}
                     onChange={handleChange("revisado")}
                 />
             </div>

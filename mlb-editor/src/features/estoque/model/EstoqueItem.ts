@@ -1,40 +1,71 @@
-// EstoqueItem.ts
 export interface EstoqueItem {
-  Situacao: string;
-  Codigo: string;
-  Item: string;
-  Fabricante: string;
-  Aplicacao: string;
-  Quant: number;
-  Minimo: number;
-  Unid: string;
-  Valorunit: number;
-  Valorfixo: number;
-  Valorcomercial: string;
-  Valorcompra: number;
-  Acrescimo: number;
-  Tipolucro: string;
-  Tipotributo: string;
-  Tipo: string;
-  Setor: string;
-  Pedir: boolean;
-  Posicao: string; // col[72] — ex: "EAN/Ambientado", "EAN/Cubagem/Otimizado"
-  TipoRetentor: string;
-  Material: string;
-  Materialret: string;
-  Local: string;
-  Historico: string;
-  Data_anuncio_site: string;
-  Versao: string;
-  StatusML: string;
-  Revisado: boolean;
-  "MIS::Mensagem simples": string;
-  NCM: string;
-  Marca: string;
-  Desc_anuncio_ML: string;
-  Tributo: number;
-  "Medida Interna": string;
-  "Medida externa": string;
-  "Medida Altura": string;
+  // Identificação
+  item: string;
+  unid: string;
+  marca: string;
+  tipoRetentor: string;
+  material: string;
+  sentido: string;
+  setor: string;
+  local: string;
+
+  // Aplicação
+  marcaDaAplicacao: string;
+  modelo: string;
+  dataFabricacao: string;
+  versaoMotor: string;
+  aplicacoesPossiveis: string;
+
+  // Comercial
+  fornecedor: string;
+  garantia: string;
+  quantidade: number;
+  quantidadeMinima: number;
+  mlb: string;
+  posicao: string;
+  conversao: string;
+  referencia: string;
+
+  // Medidas
+  medidaInterna: string;
+  medidaExterna: string;
+  altura: string;
+  pesoTotal: string;
+
+  // Valores
+  valorUnitarioFixo: string;
+  valorUnitario: string;
+  valorComercialVenda: string;
+  substituicaoTributariaValor: string;
+  lucroTipo: "percent" | "fixed";
+  lucroValor: number;
+  acrecimoPercent: number;
+
+  // Texto
+  historico: string;
+  observacoesGerais: string;
+  itensSimilaresCompactibilidade: string;
+
+  // Mercado Livre
+  situacaoML: string;
+  dataAnuncioML: string;
+  valorML: string;
+
+  // Site
+  situacaoSite: string;
+  dataAnuncioSite: string;
+  valorSite: string;
+
+  // Flags
+  pedir: boolean;
+  promocao: boolean;
+  revisado: string;
+  alocarParaSite: string;
+  reporeSomar: string;
+
+  // Imagem
+  imagem: string;
+
+  // Interno
   rawIndex: number;
 }

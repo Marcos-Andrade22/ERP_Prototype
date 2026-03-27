@@ -80,7 +80,7 @@ export function ItemForm({ initialItem }: Props) {
                     <TextInput label="Marca:" value={item.marca} onChange={handleChange("marca")} />
                 </div>
                 <div className="col-span-3">
-                    <TextInput label="Modelo:" value={item.marcaModelo} onChange={handleChange("marcaModelo")} />
+                    <TextInput label="Marca Aplic.:" value={item.marcaDaAplicacao} onChange={handleChange("marcaDaAplicacao")} />
                 </div>
                 <div className="col-span-3">
                     <TextInput label="Data de Fabricação:" value={item.dataFabricacao} onChange={handleChange("dataFabricacao")} />
