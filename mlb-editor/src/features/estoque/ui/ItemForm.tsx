@@ -9,6 +9,7 @@ import { TabHistorico } from "./tabs/TabHistorico";
 import { TabImagem } from "./tabs/TabImagem";
 import { PanelML } from "./panels/PanelML";
 import { PanelSite } from "./panels/PanelSite";
+import MlbTable from "../../../components/MlbTable";
 
 type Tab = "medidas" | "valores" | "historico" | "imagem";
 type Panel = "ml" | "site";
@@ -48,6 +49,14 @@ export function ItemForm({ initialItem }: Props) {
 
     return (
         <div className="w-full bg-[#ececec] border border-gray-400 p-3 text-xs font-sans">
+
+            {/* Cabeçalho: Disponíveis + MlbTable */}
+            <div className="flex items-center justify-between mb-3">
+                <MlbTable mlbString={item.mlb} />
+                <span className="text-[11px] font-semibold text-red-600">
+                    Disponíveis: {item.quantidade}
+                </span>
+            </div>
 
             {/* Linha 1: Item, Unid, Marca, Tipo Ret., Material, Setor, Local */}
             <div className="grid grid-cols-12 gap-x-2 gap-y-2 mb-2">

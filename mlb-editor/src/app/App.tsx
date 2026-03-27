@@ -9,9 +9,9 @@ function App() {
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-800 mb-8">Protótipos ERP</h1>
         {/* <MlbTable /> */}
-        {/* <EstoqueViewer /> */}
+        <EstoqueViewer />
         {/* <CsvDebugger /> */}
-        <CsvRawDebugger />
+        {/* <CsvRawDebugger /> */}
         {/* <CsvConverter /> */}
       </div>
     </div>

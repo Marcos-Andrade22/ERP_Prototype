@@ -1,17 +1,42 @@
 import { useState, useEffect } from 'react';
 import type { MlbItem } from '../types/mlb.types';
+type Props = {
+    mlbString?: string; // ← novo
+};
 
-export default function MlbTable() {
-    const [items, setItems] = useState<MlbItem[]>([
-        { id: '1', valor: 'MLB123456', isEditing: false, ean: false, cubagem: false, otimizado: true, full: false, patrocinados: false, clipe: false, revisado: true },
-        { id: '2', valor: 'MLB789012', isEditing: false, ean: true, cubagem: true, otimizado: false, full: true, patrocinados: false, clipe: false, revisado: false },
-    ]);
+const parseMlbString = (mlbString: string): MlbItem[] => {
+    return mlbString
+        .split(/\s+/)
+        .filter(v => v.trim() !== '')
+        .map(valor => ({
+            id: crypto.randomUUID(),
+            valor,
+            isEditing: false,
+            ean: false,
+            cubagem: false,
+            otimizado: false,
+            full: false,
+            patrocinados: false,
+            clipe: false,
+            revisado: false,
+        }));
+};
+
+export default function MlbTable({ mlbString = '' }: Props) {
+    const initial = mlbString ? parseMlbString(mlbString) : [];
+
+    const [items, setItems] = useState<MlbItem[]>(initial);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [hasChanges, setHasChanges] = useState(false);
-    const [originalItems, setOriginalItems] = useState<MlbItem[]>([
-        { id: '1', valor: 'MLB123456', isEditing: false, ean: false, cubagem: false, otimizado: true, full: false, patrocinados: false, clipe: false, revisado: true },
-        { id: '2', valor: 'MLB789012', isEditing: false, ean: true, cubagem: true, otimizado: false, full: true, patrocinados: false, clipe: false, revisado: false },
-    ]);
+    const [originalItems, setOriginalItems] = useState<MlbItem[]>(initial);
+
+    // Sincroniza quando o item externo muda (nova linha do CSV)
+    useEffect(() => {
+        const parsed = mlbString ? parseMlbString(mlbString) : [];
+        setItems(parsed);
+        setOriginalItems(parsed);
+        setHasChanges(false);
+    }, [mlbString]);
 
     useEffect(() => {
         setHasChanges(JSON.stringify(items) !== JSON.stringify(originalItems));
@@ -59,7 +84,7 @@ export default function MlbTable() {
             {/* Botão Principal */}
             <button
                 onClick={() => setIsModalOpen(true)}
-                className="bg-green-500 hover:bg-green-600 active:bg-green-700 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer mb-12 mx-auto block"
+                className="bg-green-600 hover:bg-green-700 active:bg-green-800 text-white px-3 py-1 text-[11px] font-semibold border border-green-700 rounded transition-colors cursor-pointer"
             >
                 Gerenciar MLB
             </button>
