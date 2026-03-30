@@ -1,12 +1,28 @@
 import { TextInput } from "../../../../components/forms/inputs/TextInput";
 import { DateInput } from "../../../../components/forms/inputs/DateInput";
 import { CheckboxInput } from "../../../../components/forms/inputs/CheckboxInput";
+import { SelectInput } from "../../../../components/forms/inputs/SelectInput";
 import type { EstoqueItem } from "../../model/EstoqueItem";
 
 type Props = {
     item: EstoqueItem;
     handleChange: (key: keyof EstoqueItem) => (value: any) => void;
 };
+
+const SITUACAO_ML_OPTIONS = [
+    "Anunciado Mercado Livre Premium",
+    "Anunciado Mercado Livre Classico",
+    "Anunciado no Site",
+    "Anunciado no Google",
+    "Pausado",
+    "Arrumar anuncio",
+    "Reativado",
+    "Anunciar Mercado Livre",
+    "Ver Posicionamento Pagina",
+    "Pausado Campanha",
+    "Campanha Rentabilidade",
+    "Patrocinar",
+].map(opt => ({ value: opt, label: opt }));
 
 export function PanelML({ item, handleChange }: Props) {
     const setQuantidade = (next: number) => {
@@ -15,10 +31,11 @@ export function PanelML({ item, handleChange }: Props) {
 
     return (
         <div className="p-3 flex flex-col gap-2">
-            <TextInput
+            <SelectInput
                 label="Situação:"
                 value={item.situacaoML}
                 onChange={handleChange("situacaoML")}
+                options={SITUACAO_ML_OPTIONS}
             />
 
             <div className="grid grid-cols-2 gap-2">
@@ -52,14 +69,12 @@ export function PanelML({ item, handleChange }: Props) {
                     >
                         -
                     </button>
-
                     <input
                         type="text"
                         value={item.quantidade}
                         onChange={(e) => setQuantidade(Number(e.target.value) || 0)}
                         className="flex-1 h-7 border border-gray-300 bg-gray-50 text-center font-bold text-green-700"
                     />
-
                     <button
                         type="button"
                         onClick={() => setQuantidade(item.quantidade + 1)}
@@ -70,7 +85,7 @@ export function PanelML({ item, handleChange }: Props) {
                 </div>
             </div>
 
-            <div className="flex items-center gap-3 mt-1 pt-2 border-t border-gray-200">
+            <div className="mt-1 pt-2 border-t border-gray-200">
                 <TextInput
                     label="Revisado:"
                     value={item.revisado}
