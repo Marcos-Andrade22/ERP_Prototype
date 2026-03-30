@@ -22,6 +22,15 @@ const SITUACAO_ML_OPTIONS = [
     "Pausado Campanha",
     "Campanha Rentabilidade",
     "Patrocinar",
+    "Anunciar Mercado Livre",
+    "Mudar Quantidade Mercado Livre",
+    "Duplicar Anuncio",
+    "Pausado Mercado Livre",
+    "Acompanhar Posicionamento",
+    "Reativar Mercado Livre",
+    "Excluido",
+    "Arrumar Foto"
+
 ].map(opt => ({ value: opt, label: opt }));
 
 export function PanelML({ item, handleChange }: Props) {
