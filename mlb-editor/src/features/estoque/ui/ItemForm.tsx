@@ -162,14 +162,6 @@ export function ItemForm({ initialItem }: Props) {
                 </div>
 
             </div>
-
-            {/* Footer: link imprimir */}
-            <div className="mt-3 pt-2 border-t border-gray-300">
-                <button className="text-[11px] text-blue-700 underline hover:text-blue-900">
-                    &gt;&gt;IMPRIMIR PEDIDO
-                </button>
-            </div>
-
         </div>
     );
 }
