@@ -1,5 +1,6 @@
 export interface EstoqueItem {
   // Identificação
+  codigo_item: string;
   item: string;
   unid: string;
   marca: string;

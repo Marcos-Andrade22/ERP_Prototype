@@ -1,5 +1,5 @@
 export interface KitComposicao {
-  itemCodigo: string; // referência ao EstoqueItem.referencia
+  codigo_item: string; // ← era itemCodigo, agora usa o novo campo
   quantidade: number;
 }
 

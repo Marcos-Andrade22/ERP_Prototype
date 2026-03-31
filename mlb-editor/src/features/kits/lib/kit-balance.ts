@@ -7,7 +7,10 @@ export const baixarKit = (
   itens: EstoqueItem[],
 ): EstoqueItem[] => {
   return itens.map((item) => {
-    const linha = kit.composicao.find((c) => c.itemCodigo === item.referencia);
+    const linha = kit.composicao.find(
+      (c) => c.codigo_item === item.codigo_item,
+    );
+
     if (!linha) return item;
 
     return {
@@ -23,8 +26,9 @@ export const validarEstoqueKit = (
   itens: EstoqueItem[],
 ): boolean => {
   for (const linha of kit.composicao) {
-    const item = itens.find((i) => i.referencia === linha.itemCodigo);
+    const item = itens.find((i) => i.referencia === linha.codigo_item);
     if (!item || item.quantidade < linha.quantidade * quantidade) {
+      ("");
       return false;
     }
   }

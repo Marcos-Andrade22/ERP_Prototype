@@ -13,6 +13,7 @@ export const rawRowToFormItem = (row: RawRow, idx: number): EstoqueItem => {
   const flags = col(row, COLUMN_MAP.flags);
 
   return {
+    codigo_item: "",
     item: col(row, COLUMN_MAP.item),
     unid: col(row, COLUMN_MAP.unid),
     marca: col(row, COLUMN_MAP.marca),

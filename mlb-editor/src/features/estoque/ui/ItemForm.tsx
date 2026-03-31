@@ -50,14 +50,22 @@ export function ItemForm({ initialItem }: Props) {
     return (
         <div className="w-full bg-[#ececec] border border-gray-400 p-3 text-xs font-sans">
 
-            {/* Cabeçalho: Disponíveis + MlbTable */}
-            <div className="flex items-center justify-between mb-3">
-                <MlbTable mlbString={item.mlb} />
+            {/* Cabeçalho: MlbTable + Código + Disponíveis */}
+            <div className="flex items-end justify-between mb-3">
+                <div className="flex items-end gap-2">
+                    <MlbTable mlbString={item.mlb} />
+                    <div className="w-32">
+                        <TextInput
+                            label="Código:"
+                            value={item.codigo_item}
+                            onChange={handleChange("codigo_item")}
+                        />
+                    </div>
+                </div>
                 <span className="text-[11px] font-semibold text-red-600">
                     Disponíveis: {item.quantidade}
                 </span>
             </div>
-
             {/* Linha 1: Item, Unid, Marca, Tipo Ret., Material, Setor, Local */}
             <div className="grid grid-cols-12 gap-x-2 gap-y-2 mb-2">
                 <div className="col-span-5">
@@ -83,7 +91,7 @@ export function ItemForm({ initialItem }: Props) {
                 </div>
             </div>
 
-            {/* Linha 2: Marca, Modelo, Data Fabricação, Versão/Motor */}
+            {/* Linha 2: Marca, Marca Aplic., Data Fabricação, Versão/Motor */}
             <div className="grid grid-cols-12 gap-x-2 gap-y-2 mb-2">
                 <div className="col-span-3">
                     <TextInput label="Marca:" value={item.marca} onChange={handleChange("marca")} />
@@ -99,7 +107,7 @@ export function ItemForm({ initialItem }: Props) {
                 </div>
             </div>
 
-            {/* Linha 3: Fornecedor, Qtde. mínima, MLB */}
+            {/* Linha 3: Fornecedor, Qtde. mínima, MLB, Posição */}
             <div className="grid grid-cols-12 gap-x-2 gap-y-2 mb-3">
                 <div className="col-span-5">
                     <TextInput label="Fornecedor:" value={item.fornecedor} onChange={handleChange("fornecedor")} />
@@ -110,6 +118,9 @@ export function ItemForm({ initialItem }: Props) {
                 <div className="col-span-2">
                     <TextInput label="MLB:" value={item.mlb} onChange={handleChange("mlb")} />
                 </div>
+                <div className="col-span-2">
+                    <TextInput label="Posição:" value={item.posicao} onChange={handleChange("posicao")} />
+                </div>
             </div>
 
             {/* Seção inferior: Tabs (esquerda) + Panels ML/Site (direita) */}
@@ -117,47 +128,29 @@ export function ItemForm({ initialItem }: Props) {
 
                 {/* Tabs - lado esquerdo */}
                 <div className="flex-1 border border-gray-400 bg-[#ececec]">
-                    {/* Cabeçalho das abas */}
                     <div className="flex border-b border-gray-400 bg-[#dcdcdc]">
                         {tabBtn("medidas", "Medidas e Compactibilidade")}
                         {tabBtn("valores", "Valores Comerciais")}
                         {tabBtn("historico", "Histórico e Aplicação")}
                         {tabBtn("imagem", "Imagem")}
                     </div>
-
-                    {/* Conteúdo da aba ativa */}
                     <div className="bg-white min-h-[200px]">
-                        {activeTab === "medidas" && (
-                            <TabMedidas item={item} handleChange={handleChange} />
-                        )}
-                        {activeTab === "valores" && (
-                            <TabValores item={item} handleChange={handleChange} />
-                        )}
-                        {activeTab === "historico" && (
-                            <TabHistorico item={item} handleChange={handleChange} />
-                        )}
-                        {activeTab === "imagem" && (
-                            <TabImagem item={item} handleChange={handleChange} />
-                        )}
+                        {activeTab === "medidas" && <TabMedidas item={item} handleChange={handleChange} />}
+                        {activeTab === "valores" && <TabValores item={item} handleChange={handleChange} />}
+                        {activeTab === "historico" && <TabHistorico item={item} handleChange={handleChange} />}
+                        {activeTab === "imagem" && <TabImagem item={item} handleChange={handleChange} />}
                     </div>
                 </div>
 
                 {/* Panels ML/Site - lado direito */}
                 <div className="w-64 border border-gray-400 bg-[#ececec]">
-                    {/* Cabeçalho */}
                     <div className="flex border-b border-gray-400 bg-[#dcdcdc]">
                         {panelBtn("ml", "Mercado Livre")}
                         {panelBtn("site", "Site")}
                     </div>
-
-                    {/* Conteúdo */}
                     <div className="bg-white min-h-[200px]">
-                        {activePanel === "ml" && (
-                            <PanelML item={item} handleChange={handleChange} />
-                        )}
-                        {activePanel === "site" && (
-                            <PanelSite item={item} handleChange={handleChange} />
-                        )}
+                        {activePanel === "ml" && <PanelML item={item} handleChange={handleChange} />}
+                        {activePanel === "site" && <PanelSite item={item} handleChange={handleChange} />}
                     </div>
                 </div>
 

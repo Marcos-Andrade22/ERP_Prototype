@@ -5,7 +5,7 @@ import { csvToRawJson } from "../lib/csv-raw-debug";
 import { rawRowToFormItem } from "../lib/csv-to-form-item";
 
 const emptyItem: EstoqueItem = {
-    item: '', unid: '', marca: '', tipoRetentor: '', material: '',
+    codigo_item: '', item: '', unid: '', marca: '', tipoRetentor: '', material: '',
     sentido: '', setor: '', local: '', marcaDaAplicacao: '', modelo: '',
     dataFabricacao: '', versaoMotor: '', aplicacoesPossiveis: '',
     fornecedor: '', garantia: '', quantidade: 0, quantidadeMinima: 1,
