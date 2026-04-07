@@ -43,7 +43,7 @@ router.get("/", async (req: Request, res: Response) => {
     if (versao_motor)
       filters.push(like(itens.versaoMotor, `%${versao_motor}%`));
     if (marca_da_aplicacao)
-      filters.push(like(itens.marcaDaAplicacao, `%${marca_da_aplicacao}%`));
+      filters.push(like(itens.montadora, `%${marca_da_aplicacao}%`));
     if (revisado) filters.push(eq(itens.revisado, revisado));
     if (pedir !== undefined) filters.push(eq(itens.pedir, pedir === "true"));
 

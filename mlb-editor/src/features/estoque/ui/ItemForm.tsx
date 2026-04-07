@@ -94,10 +94,10 @@ export function ItemForm({ initialItem }: Props) {
             {/* Linha 2: Marca, Marca Aplic., Data Fabricação, Versão/Motor */}
             <div className="grid grid-cols-12 gap-x-2 gap-y-2 mb-2">
                 <div className="col-span-3">
-                    <TextInput label="Marca:" value={item.marca} onChange={handleChange("marca")} />
+                    <TextInput label="Montadora:" value={item.montadora} onChange={handleChange("marca")} />
                 </div>
                 <div className="col-span-3">
-                    <TextInput label="Marca Aplic.:" value={item.marcaDaAplicacao} onChange={handleChange("marcaDaAplicacao")} />
+                    <TextInput label="Aplicações:" value={item.aplicacoes} onChange={handleChange("montadora")} />
                 </div>
                 <div className="col-span-3">
                     <TextInput label="Data de Fabricação:" value={item.dataFabricacao} onChange={handleChange("dataFabricacao")} />

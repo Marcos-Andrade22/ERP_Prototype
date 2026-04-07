@@ -11,8 +11,8 @@ export interface EstoqueItem {
   local: string;
 
   // Aplicação
-  marcaDaAplicacao: string;
-  modelo: string;
+  montadora: string;
+  aplicacoes: string;
   dataFabricacao: string;
   versaoMotor: string;
   aplicacoesPossiveis: string;
