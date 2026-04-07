@@ -22,7 +22,6 @@ const SITUACAO_ML_OPTIONS = [
     "Pausado Campanha",
     "Campanha Rentabilidade",
     "Patrocinar",
-    "Anunciar Mercado Livre",
     "Mudar Quantidade Mercado Livre",
     "Duplicar Anuncio",
     "Pausado Mercado Livre",
