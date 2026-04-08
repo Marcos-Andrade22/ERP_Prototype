@@ -2,6 +2,8 @@ import express from "express";
 import cors from "cors";
 import * as dotenv from "dotenv";
 import itensRouter from "./routes/itens";
+import kitsRouter from "./routes/kits";
+
 dotenv.config();
 
 const app = express();
@@ -15,6 +17,7 @@ app.get("/ping", (_req, res) => {
 });
 
 app.use("/itens", itensRouter);
+app.use("/kits", kitsRouter);
 
 app.listen(PORT, () => {
   console.log(`🚀 Backend rodando em http://localhost:${PORT}`);
