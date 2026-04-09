@@ -55,6 +55,14 @@ export const itens = sqliteTable("itens", {
   pedir: integer("pedir", { mode: "boolean" }).default(false),
   valorTotal: real("valor_total").default(0),
 
+  // ─── Novos Campos ────────────────────────────────────
+  lucroTipo: text("lucro_tipo").default("percent"),
+  lucroValor: real("lucro_valor").default(0),
+  acrescimoPercent: real("acrescimo_percent").default(0),
+  situacaoSite: text("situacao_site"),
+  dataAnuncioSite: text("data_anuncio_site"),
+  valorSite: real("valor_site").default(0),
+
   // ─── Controle ────────────────────────────────────────────
   criadoEm: text("criado_em"),
   atualizadoEm: text("atualizado_em"),
@@ -66,4 +74,21 @@ export const kits = sqliteTable("kits", {
   tipo: text("tipo").notNull(),
   composicao: text("composicao").notNull(),
   criadoEm: text("criado_em"),
+});
+
+export const itensMLB = sqliteTable("itens_mlb", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  itemId: integer("item_id")
+    .notNull()
+    .references(() => itens.id, { onDelete: "cascade" }),
+  valor: text("valor").notNull(),
+  ean: integer("ean", { mode: "boolean" }).default(false),
+  cubagem: integer("cubagem", { mode: "boolean" }).default(false),
+  otimizado: integer("otimizado", { mode: "boolean" }).default(false),
+  full: integer("full", { mode: "boolean" }).default(false),
+  patrocinados: integer("patrocinados", { mode: "boolean" }).default(false),
+  clipe: integer("clipe", { mode: "boolean" }).default(false),
+  revisado: integer("revisado", { mode: "boolean" }).default(false),
+  criadoEm: text("criado_em"),
+  atualizadoEm: text("atualizado_em"),
 });
