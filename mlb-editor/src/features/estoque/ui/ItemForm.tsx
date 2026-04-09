@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { EstoqueItem } from "../model/EstoqueItem";
 import { useItemForm } from "../lib/useItemForm";
+import type { SaveStatus } from "../lib/useItemForm";
 import { TextInput } from "../../../components/forms/inputs/TextInput";
 import { NumberInput } from "../../../components/forms/inputs/NumberInput";
 import { TabMedidas } from "./tabs/TabMedidas";
@@ -18,10 +19,23 @@ type Props = {
     initialItem: EstoqueItem;
 };
 
+const saveStatusLabel: Record<SaveStatus, React.ReactNode> = {
+    idle: null,
+    saving: <span className="text-blue-500 animate-pulse">Salvando...</span>,
+    saved: <span className="text-green-600 font-semibold">Salvo ✓</span>,
+    error: <span className="text-red-600 font-semibold">Erro ao salvar ✗</span>,
+};
+
 export function ItemForm({ initialItem }: Props) {
-    const { item, handleChange } = useItemForm(initialItem);
+    const { item, handleChange, save, saveStatus } = useItemForm(initialItem);
     const [activeTab, setActiveTab] = useState<Tab>("medidas");
     const [activePanel, setActivePanel] = useState<Panel>("ml");
+
+    const handleContainerBlur = (e: React.FocusEvent<HTMLDivElement>) => {
+        if (!e.currentTarget.contains(e.relatedTarget)) {
+            save();
+        }
+    };
 
     const tabBtn = (tab: Tab, label: string) => (
         <button
@@ -48,9 +62,11 @@ export function ItemForm({ initialItem }: Props) {
     );
 
     return (
-        <div className="w-full bg-[#ececec] border border-gray-400 p-3 text-xs font-sans">
-
-            {/* Cabeçalho: MlbTable + Código + Disponíveis */}
+        <div
+            className="w-full bg-[#ececec] border border-gray-400 p-3 text-xs font-sans"
+            onBlur={handleContainerBlur}
+        >
+            {/* Cabeçalho */}
             <div className="flex items-end justify-between mb-3">
                 <div className="flex items-end gap-2">
                     <MlbTable mlbString={item.mlb} />
@@ -62,11 +78,15 @@ export function ItemForm({ initialItem }: Props) {
                         />
                     </div>
                 </div>
-                <span className="text-[11px] font-semibold text-red-600">
-                    Disponíveis: {item.quantidade}
-                </span>
+                <div className="flex items-center gap-4">
+                    <span className="text-[11px]">{saveStatusLabel[saveStatus]}</span>
+                    <span className="text-[11px] font-semibold text-red-600">
+                        Disponíveis: {item.quantidade}
+                    </span>
+                </div>
             </div>
-            {/* Linha 1: Item, Unid, Marca, Tipo Ret., Material, Setor, Local */}
+
+            {/* Linha 1 */}
             <div className="grid grid-cols-12 gap-x-2 gap-y-2 mb-2">
                 <div className="col-span-5">
                     <TextInput label="Item:" value={item.item} onChange={handleChange("item")} />
@@ -91,13 +111,13 @@ export function ItemForm({ initialItem }: Props) {
                 </div>
             </div>
 
-            {/* Linha 2: Marca, Marca Aplic., Data Fabricação, Versão/Motor */}
+            {/* Linha 2 */}
             <div className="grid grid-cols-12 gap-x-2 gap-y-2 mb-2">
                 <div className="col-span-3">
-                    <TextInput label="Montadora:" value={item.montadora} onChange={handleChange("marca")} />
+                    <TextInput label="Montadora:" value={item.montadora} onChange={handleChange("montadora")} />
                 </div>
                 <div className="col-span-3">
-                    <TextInput label="Aplicações:" value={item.aplicacoes} onChange={handleChange("montadora")} />
+                    <TextInput label="Aplicações:" value={item.aplicacoes} onChange={handleChange("aplicacoes")} />
                 </div>
                 <div className="col-span-3">
                     <TextInput label="Data de Fabricação:" value={item.dataFabricacao} onChange={handleChange("dataFabricacao")} />
@@ -107,7 +127,7 @@ export function ItemForm({ initialItem }: Props) {
                 </div>
             </div>
 
-            {/* Linha 3: Fornecedor, Qtde. mínima, MLB, Posição */}
+            {/* Linha 3 */}
             <div className="grid grid-cols-12 gap-x-2 gap-y-2 mb-3">
                 <div className="col-span-5">
                     <TextInput label="Fornecedor:" value={item.fornecedor} onChange={handleChange("fornecedor")} />
@@ -123,10 +143,8 @@ export function ItemForm({ initialItem }: Props) {
                 </div>
             </div>
 
-            {/* Seção inferior: Tabs (esquerda) + Panels ML/Site (direita) */}
+            {/* Seção inferior */}
             <div className="flex gap-3">
-
-                {/* Tabs - lado esquerdo */}
                 <div className="flex-1 border border-gray-400 bg-[#ececec]">
                     <div className="flex border-b border-gray-400 bg-[#dcdcdc]">
                         {tabBtn("medidas", "Medidas e Compactibilidade")}
@@ -142,7 +160,6 @@ export function ItemForm({ initialItem }: Props) {
                     </div>
                 </div>
 
-                {/* Panels ML/Site - lado direito */}
                 <div className="w-64 border border-gray-400 bg-[#ececec]">
                     <div className="flex border-b border-gray-400 bg-[#dcdcdc]">
                         {panelBtn("ml", "Mercado Livre")}
@@ -153,7 +170,6 @@ export function ItemForm({ initialItem }: Props) {
                         {activePanel === "site" && <PanelSite item={item} handleChange={handleChange} />}
                     </div>
                 </div>
-
             </div>
         </div>
     );

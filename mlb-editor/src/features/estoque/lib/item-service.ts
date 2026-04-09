@@ -1,4 +1,5 @@
 import { api } from "../../../shared/lib/api";
+import type { EstoqueItem } from "../model/EstoqueItem";
 
 export interface FiltrosItens {
   page?: number;
@@ -26,22 +27,22 @@ export const itensService = {
     return data;
   },
 
-  buscarPorId: async (id: number) => {
+  buscarPorId: async (id: string | number) => {
     const { data } = await api.get(`/itens/${id}`);
     return data;
   },
 
-  criar: async (item: Record<string, unknown>) => {
+  criar: async (item: EstoqueItem) => {
     const { data } = await api.post("/itens", item);
     return data;
   },
 
-  atualizar: async (id: number, item: Record<string, unknown>) => {
+  atualizar: async (id: string | number, item: EstoqueItem) => {
     const { data } = await api.put(`/itens/${id}`, item);
     return data;
   },
 
-  deletar: async (id: number) => {
+  deletar: async (id: string | number) => {
     const { data } = await api.delete(`/itens/${id}`);
     return data;
   },
