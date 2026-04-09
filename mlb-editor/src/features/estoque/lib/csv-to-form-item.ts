@@ -49,7 +49,7 @@ export const rawRowToFormItem = (row: RawRow, idx: number): EstoqueItem => {
     ),
     lucroTipo: "percent",
     lucroValor: 0,
-    acrecimoPercent: 0,
+    acrescimoPercent: 0,
     observacoesGerais: col(row, COLUMN_MAP.observacoesGerais),
     itensSimilaresCompactibilidade: col(
       row,

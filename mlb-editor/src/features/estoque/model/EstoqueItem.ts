@@ -41,7 +41,7 @@ export interface EstoqueItem {
   substituicaoTributariaValor: string;
   lucroTipo: "percent" | "fixed";
   lucroValor: number;
-  acrecimoPercent: number;
+  acrescimoPercent: number;
 
   // Texto
   historico: string;
