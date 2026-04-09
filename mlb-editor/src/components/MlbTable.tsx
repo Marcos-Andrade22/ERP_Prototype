@@ -1,42 +1,40 @@
 import { useState, useEffect } from 'react';
 import type { MlbItem } from '../types/mlb.types';
+import { useMlb } from '../features/estoque/lib/useMlb';
+
 type Props = {
-    mlbString?: string; // ← novo
+    itemId: number; // ← substitui mlbString
 };
 
-const parseMlbString = (mlbString: string): MlbItem[] => {
-    return mlbString
-        .split(/\s+/)
-        .filter(v => v.trim() !== '')
-        .map(valor => ({
-            id: crypto.randomUUID(),
-            valor,
+export default function MlbTable({ itemId }: Props) {
+    const { mlbs: mlbsDoBackend, loading, salvar } = useMlb({ itemId });
+
+    const backendParaUI = (dados: typeof mlbsDoBackend): MlbItem[] =>
+        dados.map(d => ({
+            id: String(d.id),
+            valor: d.valor,
             isEditing: false,
-            ean: false,
-            cubagem: false,
-            otimizado: false,
-            full: false,
-            patrocinados: false,
-            clipe: false,
-            revisado: false,
+            ean: d.ean,
+            cubagem: d.cubagem,
+            otimizado: d.otimizado,
+            full: d.full,
+            patrocinados: d.patrocinados,
+            clipe: d.clipe,
+            revisado: d.revisado,
         }));
-};
 
-export default function MlbTable({ mlbString = '' }: Props) {
-    const initial = mlbString ? parseMlbString(mlbString) : [];
-
-    const [items, setItems] = useState<MlbItem[]>(initial);
+    const [items, setItems] = useState<MlbItem[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [hasChanges, setHasChanges] = useState(false);
-    const [originalItems, setOriginalItems] = useState<MlbItem[]>(initial);
+    const [originalItems, setOriginalItems] = useState<MlbItem[]>([]);
 
-    // Sincroniza quando o item externo muda (nova linha do CSV)
+    // Sincroniza quando os dados do backend chegam
     useEffect(() => {
-        const parsed = mlbString ? parseMlbString(mlbString) : [];
-        setItems(parsed);
-        setOriginalItems(parsed);
+        const convertidos = backendParaUI(mlbsDoBackend);
+        setItems(convertidos);
+        setOriginalItems(convertidos);
         setHasChanges(false);
-    }, [mlbString]);
+    }, [mlbsDoBackend]);
 
     useEffect(() => {
         setHasChanges(JSON.stringify(items) !== JSON.stringify(originalItems));
@@ -55,11 +53,10 @@ export default function MlbTable({ mlbString = '' }: Props) {
     }
 
     function addItem() {
-        const newId = crypto.randomUUID();
         setItems(curr => [
             ...curr,
             {
-                id: newId,
+                id: crypto.randomUUID(),
                 valor: '',
                 isEditing: true,
                 ean: false,
@@ -73,10 +70,19 @@ export default function MlbTable({ mlbString = '' }: Props) {
         ]);
     }
 
-    function confirmChanges() {
-        setOriginalItems([...items]);
-        setHasChanges(false);
-        setIsModalOpen(false);
+    async function confirmChanges() {
+        // Remove isEditing antes de enviar ao backend
+        const payload = items
+            .filter(i => i.valor.trim() !== '')
+            .map(({ id: _id, isEditing: _ie, ...rest }) => rest);
+
+        const sucesso = await salvar(payload);
+
+        if (sucesso) {
+            setOriginalItems([...items]);
+            setHasChanges(false);
+            setIsModalOpen(false);
+        }
     }
 
     return (
@@ -86,7 +92,7 @@ export default function MlbTable({ mlbString = '' }: Props) {
                 onClick={() => setIsModalOpen(true)}
                 className="bg-green-600 hover:bg-green-700 active:bg-green-800 text-white px-3 py-1 text-[11px] font-semibold border border-green-700 rounded transition-colors cursor-pointer"
             >
-                Gerenciar MLB
+                {loading ? 'Carregando...' : 'Gerenciar MLB'}
             </button>
 
             {/* Modal */}
@@ -109,9 +115,10 @@ export default function MlbTable({ mlbString = '' }: Props) {
                                     {hasChanges && (
                                         <button
                                             onClick={confirmChanges}
-                                            className="bg-green-500 hover:bg-green-600 active:bg-green-700 text-white px-6 py-3 rounded-xl font-bold shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer"
+                                            disabled={loading}
+                                            className="bg-green-500 hover:bg-green-600 active:bg-green-700 text-white px-6 py-3 rounded-xl font-bold shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer disabled:opacity-50"
                                         >
-                                            ✅ Confirmar Alterações
+                                            {loading ? '⏳ Salvando...' : '✅ Confirmar Alterações'}
                                         </button>
                                     )}
                                     <button
@@ -148,41 +155,22 @@ export default function MlbTable({ mlbString = '' }: Props) {
                             <table className="w-full table-fixed">
                                 <thead className="sticky top-0 bg-gradient-to-r from-gray-100 to-gray-200 z-20 shadow-sm">
                                     <tr>
-                                        <th className="w-72 p-4 text-left border-b-2 border-gray-300 font-bold text-gray-700 uppercase tracking-wide text-sm">
-                                            MLB
-                                        </th>
-                                        <th className="w-20 p-4 text-center border-b-2 border-gray-300 font-bold text-gray-700 text-xs">
-                                            EAN
-                                        </th>
-                                        <th className="w-24 p-4 text-center border-b-2 border-gray-300 font-bold text-gray-700 text-xs">
-                                            Cubagem
-                                        </th>
-                                        <th className="w-28 p-4 text-center border-b-2 border-gray-300 font-bold text-gray-700 text-xs">
-                                            Otimizado
-                                        </th>
-                                        <th className="w-20 p-4 text-center border-b-2 border-gray-300 font-bold text-gray-700 text-xs">
-                                            Full
-                                        </th>
-                                        <th className="w-32 p-4 text-center border-b-2 border-gray-300 font-bold text-gray-700 text-xs">
-                                            Patrocinados
-                                        </th>
-                                        <th className="w-20 p-4 text-center border-b-2 border-gray-300 font-bold text-gray-700 text-xs">
-                                            Clipe
-                                        </th>
-                                        <th className="w-24 p-4 text-center border-b-2 border-gray-300 font-bold text-gray-700 text-xs">
-                                            Revisado
-                                        </th>
-                                        <th className="w-32 p-4 text-center border-b-2 border-gray-300 font-bold text-gray-700 text-xs">
-                                            Ações
-                                        </th>
+                                        <th className="w-72 p-4 text-left border-b-2 border-gray-300 font-bold text-gray-700 uppercase tracking-wide text-sm">MLB</th>
+                                        <th className="w-20 p-4 text-center border-b-2 border-gray-300 font-bold text-gray-700 text-xs">EAN</th>
+                                        <th className="w-24 p-4 text-center border-b-2 border-gray-300 font-bold text-gray-700 text-xs">Cubagem</th>
+                                        <th className="w-28 p-4 text-center border-b-2 border-gray-300 font-bold text-gray-700 text-xs">Otimizado</th>
+                                        <th className="w-20 p-4 text-center border-b-2 border-gray-300 font-bold text-gray-700 text-xs">Full</th>
+                                        <th className="w-32 p-4 text-center border-b-2 border-gray-300 font-bold text-gray-700 text-xs">Patrocinados</th>
+                                        <th className="w-20 p-4 text-center border-b-2 border-gray-300 font-bold text-gray-700 text-xs">Clipe</th>
+                                        <th className="w-24 p-4 text-center border-b-2 border-gray-300 font-bold text-gray-700 text-xs">Revisado</th>
+                                        <th className="w-32 p-4 text-center border-b-2 border-gray-300 font-bold text-gray-700 text-xs">Ações</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-200">
                                     {items.map((item) => (
                                         <tr
                                             key={item.id}
-                                            className={`transition-all duration-200 hover:bg-gray-50 ${item.isEditing ? 'bg-yellow-50 border-2 border-yellow-200' : ''
-                                                }`}
+                                            className={`transition-all duration-200 hover:bg-gray-50 ${item.isEditing ? 'bg-yellow-50 border-2 border-yellow-200' : ''}`}
                                         >
                                             <td className="p-4">
                                                 <input
@@ -204,76 +192,31 @@ export default function MlbTable({ mlbString = '' }: Props) {
                                                 />
                                             </td>
                                             <td className="p-4 text-center">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={item.ean}
-                                                    onChange={(e) => updateFlag(item.id, 'ean', e.target.checked)}
-                                                    className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 cursor-pointer"
-                                                    disabled={!item.isEditing}
-                                                />
+                                                <input type="checkbox" checked={item.ean} onChange={(e) => updateFlag(item.id, 'ean', e.target.checked)} disabled={!item.isEditing} className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 cursor-pointer" />
                                             </td>
                                             <td className="p-4 text-center">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={item.cubagem}
-                                                    onChange={(e) => updateFlag(item.id, 'cubagem', e.target.checked)}
-                                                    className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 cursor-pointer"
-                                                    disabled={!item.isEditing}
-                                                />
+                                                <input type="checkbox" checked={item.cubagem} onChange={(e) => updateFlag(item.id, 'cubagem', e.target.checked)} disabled={!item.isEditing} className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 cursor-pointer" />
                                             </td>
                                             <td className="p-4 text-center">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={item.otimizado}
-                                                    onChange={(e) => updateFlag(item.id, 'otimizado', e.target.checked)}
-                                                    className="w-5 h-5 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500 focus:ring-2 cursor-pointer"
-                                                    disabled={!item.isEditing}
-                                                />
+                                                <input type="checkbox" checked={item.otimizado} onChange={(e) => updateFlag(item.id, 'otimizado', e.target.checked)} disabled={!item.isEditing} className="w-5 h-5 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500 focus:ring-2 cursor-pointer" />
                                             </td>
                                             <td className="p-4 text-center">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={item.full}
-                                                    onChange={(e) => updateFlag(item.id, 'full', e.target.checked)}
-                                                    className="w-5 h-5 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 focus:ring-2 cursor-pointer"
-                                                    disabled={!item.isEditing}
-                                                />
+                                                <input type="checkbox" checked={item.full} onChange={(e) => updateFlag(item.id, 'full', e.target.checked)} disabled={!item.isEditing} className="w-5 h-5 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 focus:ring-2 cursor-pointer" />
                                             </td>
                                             <td className="p-4 text-center">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={item.patrocinados}
-                                                    onChange={(e) => updateFlag(item.id, 'patrocinados', e.target.checked)}
-                                                    className="w-5 h-5 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500 focus:ring-2 cursor-pointer"
-                                                    disabled={!item.isEditing}
-                                                />
+                                                <input type="checkbox" checked={item.patrocinados} onChange={(e) => updateFlag(item.id, 'patrocinados', e.target.checked)} disabled={!item.isEditing} className="w-5 h-5 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500 focus:ring-2 cursor-pointer" />
                                             </td>
                                             <td className="p-4 text-center">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={item.clipe}
-                                                    onChange={(e) => updateFlag(item.id, 'clipe', e.target.checked)}
-                                                    className="w-5 h-5 text-pink-600 bg-gray-100 border-gray-300 rounded focus:ring-pink-500 focus:ring-2 cursor-pointer"
-                                                    disabled={!item.isEditing}
-                                                />
+                                                <input type="checkbox" checked={item.clipe} onChange={(e) => updateFlag(item.id, 'clipe', e.target.checked)} disabled={!item.isEditing} className="w-5 h-5 text-pink-600 bg-gray-100 border-gray-300 rounded focus:ring-pink-500 focus:ring-2 cursor-pointer" />
                                             </td>
                                             <td className="p-4 text-center">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={item.revisado}
-                                                    onChange={(e) => updateFlag(item.id, 'revisado', e.target.checked)}
-                                                    className="w-5 h-5 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500 focus:ring-2 cursor-pointer"
-                                                    disabled={!item.isEditing}
-                                                />
+                                                <input type="checkbox" checked={item.revisado} onChange={(e) => updateFlag(item.id, 'revisado', e.target.checked)} disabled={!item.isEditing} className="w-5 h-5 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500 focus:ring-2 cursor-pointer" />
                                             </td>
                                             <td className="p-4 text-center">
                                                 <div className="flex gap-2 justify-center">
                                                     <button
                                                         onClick={() => toggleEdit(item.id)}
-                                                        className={`p-2 rounded-full transition-all duration-200 hover:scale-110 cursor-pointer shadow-md ${item.isEditing
-                                                            ? 'bg-red-500 hover:bg-red-600 text-white'
-                                                            : 'bg-blue-500 hover:bg-blue-600 text-white'
-                                                            }`}
+                                                        className={`p-2 rounded-full transition-all duration-200 hover:scale-110 cursor-pointer shadow-md ${item.isEditing ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-blue-500 hover:bg-blue-600 text-white'}`}
                                                         title={item.isEditing ? 'Cancelar edição (✕)' : 'Editar linha (🖉)'}
                                                     >
                                                         {item.isEditing ? '✕' : '🖉'}
@@ -281,7 +224,7 @@ export default function MlbTable({ mlbString = '' }: Props) {
                                                     <button
                                                         onClick={() => deleteItem(item.id)}
                                                         className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-full hover:scale-110 transition-all duration-200 cursor-pointer shadow-md"
-                                                        title="Excluir item (🗑️)"
+                                                        title="Excluir item"
                                                     >
                                                         🗑️
                                                     </button>

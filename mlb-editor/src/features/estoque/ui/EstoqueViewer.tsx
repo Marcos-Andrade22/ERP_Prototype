@@ -14,7 +14,7 @@ const emptyItem: EstoqueItem = {
     medidaInterna: '', medidaExterna: '', altura: '', pesoTotal: '',
     historico: '', valorUnitarioFixo: '', valorUnitario: '',
     valorComercialVenda: '', substituicaoTributariaValor: '',
-    lucroTipo: 'percent', lucroValor: 0, acrecimoPercent: 0,
+    lucroTipo: 'percent', lucroValor: 0, acrescimoPercent: 0,
     observacoesGerais: '', itensSimilaresCompactibilidade: '',
     situacaoML: '', dataAnuncioML: '', valorML: '',
     situacaoSite: '', dataAnuncioSite: '', valorSite: '',

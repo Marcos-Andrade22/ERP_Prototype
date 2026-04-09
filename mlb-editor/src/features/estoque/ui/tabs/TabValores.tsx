@@ -58,8 +58,8 @@ export function TabValores({ item, handleChange }: Props) {
 
             <NumberInput
                 label="Acréscimo %:"
-                value={item.acrecimoPercent}
-                onChange={handleChange("acrecimoPercent")}
+                value={item.acrescimoPercent}
+                onChange={handleChange("acrescimoPercent")}
             />
             <TextInput
                 label="Valor Comercial Venda:"

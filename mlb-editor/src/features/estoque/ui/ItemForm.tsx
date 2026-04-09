@@ -69,7 +69,7 @@ export function ItemForm({ initialItem }: Props) {
             {/* Cabeçalho */}
             <div className="flex items-end justify-between mb-3">
                 <div className="flex items-end gap-2">
-                    <MlbTable mlbString={item.mlb} />
+                    <MlbTable itemId={item.id!} />
                     <div className="w-32">
                         <TextInput
                             label="Código:"
