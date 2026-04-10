@@ -17,6 +17,7 @@ type Panel = "ml" | "site";
 
 type Props = {
     initialItem: EstoqueItem;
+    onDelete?: () => void; // ← novo    
 };
 
 const saveStatusLabel: Record<SaveStatus, React.ReactNode> = {
@@ -26,7 +27,7 @@ const saveStatusLabel: Record<SaveStatus, React.ReactNode> = {
     error: <span className="text-red-600 font-semibold">Erro ao salvar ✗</span>,
 };
 
-export function ItemForm({ initialItem }: Props) {
+export function ItemForm({ initialItem, onDelete }: Props) {
     const { item, handleChange, save, saveStatus } = useItemForm(initialItem);
     const [activeTab, setActiveTab] = useState<Tab>("medidas");
     const [activePanel, setActivePanel] = useState<Panel>("ml");
@@ -71,18 +72,23 @@ export function ItemForm({ initialItem }: Props) {
                 <div className="flex items-end gap-2">
                     <MlbTable itemId={item.id!} />
                     <div className="w-32">
-                        <TextInput
-                            label="Código:"
-                            value={item.codigo_item}
-                            onChange={handleChange("codigo_item")}
-                        />
+                        <TextInput label="Código:" value={item.codigo_item} onChange={handleChange("codigo_item")} />
                     </div>
                 </div>
+
                 <div className="flex items-center gap-4">
                     <span className="text-[11px]">{saveStatusLabel[saveStatus]}</span>
                     <span className="text-[11px] font-semibold text-red-600">
                         Disponíveis: {item.quantidade}
                     </span>
+                    {item.id && onDelete && (
+                        <button
+                            onClick={onDelete}
+                            className="px-2 py-1 text-[11px] border border-red-300 text-red-600 hover:bg-red-50 transition-colors"
+                        >
+                            Excluir
+                        </button>
+                    )}
                 </div>
             </div>
 

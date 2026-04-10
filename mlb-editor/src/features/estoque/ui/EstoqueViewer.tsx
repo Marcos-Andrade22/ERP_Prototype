@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { ItemForm } from "./ItemForm";
 import type { EstoqueItem } from "../model/EstoqueItem";
 import { useItens } from "../lib/useItens";
+import { itensService } from "../lib/item-service"
 
 const LIMITE = 20;
 
@@ -39,6 +40,21 @@ export function EstoqueViewer() {
         debounceRef.current = setTimeout(() => {
             setFiltros(val ? { item: val } : {});
         }, 400);
+    };
+
+    const handleDelete = async () => {
+        const itemAtual = items[selectedIndex];
+        if (!itemAtual?.id) return;
+
+        const confirmado = window.confirm(`Excluir "${itemAtual.item}"?`);
+        if (!confirmado) return;
+
+        await itensService.deletar(itemAtual.id);
+
+        // Navega para o anterior se possível
+        setSelectedIndex(i => Math.max(0, i - 1));
+        // Recarrega a lista
+        setFiltros(searchInput ? { item: searchInput } : {});
     };
 
     const navigate = (delta: number) =>
@@ -137,6 +153,7 @@ export function EstoqueViewer() {
             <ItemForm
                 key={selectedItem.codigo_item || `empty-${selectedIndex}`}
                 initialItem={selectedItem}
+                onDelete={handleDelete}
             />
         </div>
     );
