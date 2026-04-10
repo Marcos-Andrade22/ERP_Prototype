@@ -44,7 +44,15 @@ export function EstoqueViewer() {
     const navigate = (delta: number) =>
         setSelectedIndex(i => Math.min(items.length - 1, Math.max(0, i + delta)));
 
-    const selectedItem = items[selectedIndex] ?? emptyItem;
+    const selectedItem = items[selectedIndex]
+        ? {
+            ...emptyItem,
+            ...Object.fromEntries(
+                Object.entries(items[selectedIndex])
+                    .filter(([_, v]) => v !== undefined && v !== null)
+            ),
+        }
+        : emptyItem;
 
     return (
         <div className="min-h-screen bg-[#d4d0c8] p-4 space-y-3">
