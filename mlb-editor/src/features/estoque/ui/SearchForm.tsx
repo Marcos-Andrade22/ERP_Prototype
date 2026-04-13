@@ -15,7 +15,7 @@ type Props = {
 };
 
 const emptyFilters: Partial<EstoqueItem> = {
-    codigo_item: "", item: "", unid: "", marca: "", tipoRetentor: "", material: "",
+    codigoItem: "", item: "", unid: "", marca: "", tipoRetentor: "", material: "",
     sentido: "", setor: "", local: "", montadora: "", aplicacoes: "",
     dataFabricacao: "", versaoMotor: "", aplicacoesPossiveis: "",
     fornecedor: "", garantia: "", mlb: "", posicao: "", conversao: "", referencia: "",
@@ -75,7 +75,7 @@ export function SearchForm({ onSearch }: Props) {
             {/* Cabeçalho */}
             <div className="flex items-end justify-between mb-3">
                 <div className="w-32">
-                    <TextInput label="Código:" value={filtros.codigo_item ?? ""} onChange={handleChange("codigo_item")} />
+                    <TextInput label="Código:" value={filtros.codigoItem ?? ""} onChange={handleChange("codigoItem")} />
                 </div>
             </div>
 

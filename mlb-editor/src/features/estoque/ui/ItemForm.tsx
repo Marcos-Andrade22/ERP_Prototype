@@ -72,7 +72,7 @@ export function ItemForm({ initialItem, onDelete }: Props) {
                 <div className="flex items-end gap-2">
                     <MlbTable itemId={item.id!} />
                     <div className="w-32">
-                        <TextInput label="Código:" value={item.codigo_item} onChange={handleChange("codigo_item")} />
+                        <TextInput label="Código:" value={item.codigoItem} onChange={handleChange("codigoItem")} />
                     </div>
                 </div>
 

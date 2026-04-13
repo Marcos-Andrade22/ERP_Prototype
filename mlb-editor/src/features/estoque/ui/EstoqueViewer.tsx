@@ -7,7 +7,7 @@ import { itensService } from "../lib/item-service"
 const LIMITE = 20;
 
 const emptyItem: EstoqueItem = {
-    codigo_item: '', item: '', unid: '', marca: '', tipoRetentor: '', material: '',
+    codigoItem: '', item: '', unid: '', marca: '', tipoRetentor: '', material: '',
     sentido: '', setor: '', local: '', montadora: '', aplicacoes: '',
     dataFabricacao: '', versaoMotor: '', aplicacoesPossiveis: '',
     fornecedor: '', garantia: '', quantidade: 0, quantidadeMinima: 1,
@@ -151,7 +151,7 @@ export function EstoqueViewer() {
             </div>
 
             <ItemForm
-                key={selectedItem.codigo_item || `empty-${selectedIndex}`}
+                key={selectedItem.codigoItem || `empty-${selectedIndex}`}
                 initialItem={selectedItem}
                 onDelete={handleDelete}
             />

@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import { db } from "../db";
 import { itens } from "../db/schema";
 import { like, eq, and, SQL } from "drizzle-orm";
+import type { Column } from "drizzle-orm";
 import { parse } from "csv-parse/sync";
 import { upload } from "../config/multer";
 
@@ -10,32 +11,28 @@ const router = Router();
 // ─── Mapeamento Frontend ↔ Backend ────────────────────────────
 const mapearParaFrontend = (item: any): any => ({
   ...item,
-  // Itens Similares
   itensSimilaresCompactibilidade: item.itensSimilares,
-  // Mercado Livre (campos que vêm do banco)
   situacaoML: item.situacaoMl,
   dataAnuncioML: item.dataAnuncio,
   valorML: item.valorAnuncio?.toString() ?? "",
 });
 
 const mapearParaBanco = (payload: any): any => {
+  const RENOMEAR: Record<string, string> = {
+    itensSimilaresCompactibilidade: "itensSimilares",
+    situacaoML: "situacaoMl",
+    dataAnuncioML: "dataAnuncio",
+  };
+
   const dados = { ...payload };
 
-  // Itens Similares
-  if (dados.itensSimilaresCompactibilidade !== undefined) {
-    dados.itensSimilares = dados.itensSimilaresCompactibilidade;
-    delete dados.itensSimilaresCompactibilidade;
+  for (const [de, para] of Object.entries(RENOMEAR)) {
+    if (dados[de] !== undefined) {
+      dados[para] = dados[de];
+      delete dados[de];
+    }
   }
 
-  // Mercado Livre (campos que vêm da UI)
-  if (dados.situacaoML !== undefined) {
-    dados.situacaoMl = dados.situacaoML;
-    delete dados.situacaoML;
-  }
-  if (dados.dataAnuncioML !== undefined) {
-    dados.dataAnuncio = dados.dataAnuncioML;
-    delete dados.dataAnuncioML;
-  }
   if (dados.valorML !== undefined) {
     dados.valorAnuncio = parseFloat(dados.valorML) || 0;
     delete dados.valorML;
@@ -44,48 +41,47 @@ const mapearParaBanco = (payload: any): any => {
   return dados;
 };
 
+// ─── Config de filtros ────────────────────────────────────────
+const FILTROS_LIKE: Array<[string, Column]> = [
+  ["codigoItem", itens.codigoItem],
+  ["referencia", itens.referencia],
+  ["item", itens.item],
+  ["marca", itens.marca],
+  ["fornecedor", itens.fornecedor],
+  ["material", itens.material],
+  ["tipo_retentor", itens.tipoRetentor],
+  ["versao_motor", itens.versaoMotor],
+  ["montadora", itens.montadora],
+  ["sentido", itens.sentido],
+];
+
+const FILTROS_EQ: Array<[string, Column]> = [
+  ["mlb", itens.mlb],
+  ["setor", itens.setor],
+  ["local", itens.local],
+  ["situacao_ml", itens.situacaoMl],
+  ["revisado", itens.revisado],
+];
+
 // ─── GET /itens ───────────────────────────────────────────────
 router.get("/", async (req: Request, res: Response) => {
   try {
-    const {
-      page = "1",
-      limit = "20",
-      referencia,
-      item,
-      marca,
-      mlb,
-      fornecedor,
-      setor,
-      local,
-      situacao_ml,
-      material,
-      tipo_retentor,
-      versao_motor,
-      montadora,
-      sentido,
-      pedir,
-      revisado,
-    } = req.query as Record<string, string>;
+    const query = req.query as Record<string, string>;
+    const { page = "1", limit = "20" } = query;
 
     const filters: SQL[] = [];
 
-    if (referencia) filters.push(like(itens.referencia, `%${referencia}%`));
-    if (item) filters.push(like(itens.item, `%${item}%`));
-    if (marca) filters.push(like(itens.marca, `%${marca}%`));
-    if (mlb) filters.push(eq(itens.mlb, mlb));
-    if (fornecedor) filters.push(like(itens.fornecedor, `%${fornecedor}%`));
-    if (setor) filters.push(eq(itens.setor, setor));
-    if (local) filters.push(eq(itens.local, local));
-    if (situacao_ml) filters.push(eq(itens.situacaoMl, situacao_ml));
-    if (material) filters.push(like(itens.material, `%${material}%`));
-    if (tipo_retentor)
-      filters.push(like(itens.tipoRetentor, `%${tipo_retentor}%`));
-    if (versao_motor)
-      filters.push(like(itens.versaoMotor, `%${versao_motor}%`));
-    if (montadora) filters.push(like(itens.montadora, `%${montadora}%`));
-    if (sentido) filters.push(like(itens.sentido, `%${sentido}%`));
-    if (revisado) filters.push(eq(itens.revisado, revisado));
-    if (pedir !== undefined) filters.push(eq(itens.pedir, pedir === "true"));
+    for (const [param, col] of FILTROS_LIKE) {
+      if (query[param]) filters.push(like(col as any, `%${query[param]}%`));
+    }
+
+    for (const [param, col] of FILTROS_EQ) {
+      if (query[param]) filters.push(eq(col as any, query[param]));
+    }
+
+    if (query.pedir !== undefined && query.pedir !== "") {
+      filters.push(eq(itens.pedir, query.pedir === "true"));
+    }
 
     const pageNum = Math.max(1, parseInt(page));
     const limitNum = Math.min(100, Math.max(1, parseInt(limit)));
@@ -98,11 +94,8 @@ router.get("/", async (req: Request, res: Response) => {
       .limit(limitNum)
       .offset(offset);
 
-    // ← AQUI: aplica mapeamento para o frontend
-    const resultsMapped = results.map(mapearParaFrontend);
-
     res.json({
-      data: resultsMapped,
+      data: results.map(mapearParaFrontend),
       page: pageNum,
       limit: limitNum,
       total: results.length,
@@ -127,9 +120,7 @@ router.get("/:id", async (req: Request, res: Response) => {
       return;
     }
 
-    // ← AQUI: aplica mapeamento para o frontend
-    const itemMapped = mapearParaFrontend(result[0]);
-    res.json(itemMapped);
+    res.json(mapearParaFrontend(result[0]));
   } catch (error) {
     res.status(500).json({ error: "Erro ao buscar item" });
   }
@@ -139,11 +130,10 @@ router.get("/:id", async (req: Request, res: Response) => {
 router.post("/", async (req: Request, res: Response) => {
   try {
     const agora = new Date().toISOString();
-    const dadosBanco = mapearParaBanco(req.body); // ← AQUI: mapeia antes de salvar
+    const dadosBanco = mapearParaBanco(req.body);
     const novoItem = { ...dadosBanco, criadoEm: agora, atualizadoEm: agora };
     const result = await db.insert(itens).values(novoItem).returning();
 
-    // ← AQUI: devolve mapeado para o frontend
     res.status(201).json(mapearParaFrontend(result[0]));
   } catch (error) {
     res.status(500).json({ error: "Erro ao criar item" });
@@ -154,7 +144,7 @@ router.post("/", async (req: Request, res: Response) => {
 router.put("/:id", async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id);
-    const dadosBanco = mapearParaBanco(req.body); // ← AQUI: mapeia antes de salvar
+    const dadosBanco = mapearParaBanco(req.body);
     const dadosAtualizados = {
       ...dadosBanco,
       atualizadoEm: new Date().toISOString(),
@@ -171,9 +161,9 @@ router.put("/:id", async (req: Request, res: Response) => {
       return;
     }
 
-    // ← AQUI: devolve mapeado para o frontend
     res.json(mapearParaFrontend(result[0]));
   } catch (error) {
+    console.error("PUT /itens/:id →", error); // ← adiciona
     res.status(500).json({ error: "Erro ao atualizar item" });
   }
 });

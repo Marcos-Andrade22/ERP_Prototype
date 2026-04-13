@@ -3,6 +3,7 @@ import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
 export const itens = sqliteTable("itens", {
   // ─── Identificação ───────────────────────────────────────
   id: integer("id").primaryKey({ autoIncrement: true }),
+  codigoItem: text("codigo_item"),
   referencia: text("referencia"), // col_0
   marca: text("marca"), // col_1
   mlb: text("mlb"), // col_2

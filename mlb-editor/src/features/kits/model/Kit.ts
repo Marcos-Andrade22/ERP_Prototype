@@ -1,5 +1,5 @@
 export interface KitComposicao {
-  codigo_item: string; // ← era itemCodigo, agora usa o novo campo
+  codigoItem: string; // ← era itemCodigo, agora usa o novo campo
   quantidade: number;
 }
 

@@ -3,6 +3,7 @@ import { SearchForm } from "../../ui/SearchForm";
 import type { EstoqueItem } from "../../model/EstoqueItem";
 
 const campoParaParam: Partial<Record<keyof EstoqueItem, string>> = {
+    codigoItem: "codigoItem",
     item: "item",
     marca: "marca",
     referencia: "referencia",

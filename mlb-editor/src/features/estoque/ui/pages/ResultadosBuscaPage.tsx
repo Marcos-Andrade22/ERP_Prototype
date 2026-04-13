@@ -84,7 +84,7 @@ export function ResultadosBuscaPage() {
                         className={`grid grid-cols-12 px-3 py-2 text-[11px] border-b border-gray-200 cursor-pointer transition-colors
                             ${index % 2 === 0 ? "bg-white" : "bg-[#f5f5f5]"} hover:bg-orange-50`}
                     >
-                        <div className="col-span-1 text-center text-gray-500">{item.codigo_item}</div>
+                        <div className="col-span-1 text-center text-gray-500">{item.codigoItem}</div>
                         <div className="col-span-5 font-medium text-gray-900 truncate">{item.item}</div>
                         <div className="col-span-2 text-gray-600">{item.marca}</div>
                         <div className="col-span-2 text-gray-500">{item.referencia}</div>
