@@ -1,8 +1,9 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { ItemForm } from "./ItemForm";
 import type { EstoqueItem } from "../model/EstoqueItem";
 import { useItens } from "../lib/useItens";
-import { itensService } from "../lib/item-service"
+import { itensService } from "../lib/item-service";
 
 const LIMITE = 20;
 
@@ -23,14 +24,33 @@ const emptyItem: EstoqueItem = {
     reporeSomar: '', imagem: '', rawIndex: 0,
 };
 
+const mergeComDefaults = (item: EstoqueItem): EstoqueItem => ({
+    ...emptyItem,
+    ...Object.fromEntries(
+        Object.entries(item).filter(([_, v]) => v !== undefined && v !== null)
+    ),
+});
+
 export function EstoqueViewer() {
     const [selectedIndex, setSelectedIndex] = useState(0);
     const [searchInput, setSearchInput] = useState("");
+    const [itemForcado, setItemForcado] = useState<EstoqueItem | null>(null);
+
+    const location = useLocation();
+    const itemIdInicial = (location.state as { itemId?: number } | null)?.itemId;
 
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const { items, total, page, loading, erro, setPage, setFiltros } = useItens(LIMITE);
 
     const totalPaginas = Math.ceil(total / LIMITE);
+
+    // Busca o item diretamente pelo id quando vindo da página de resultados
+    useEffect(() => {
+        if (!itemIdInicial) return;
+        itensService.buscarPorId(itemIdInicial).then(item => {
+            setItemForcado(mergeComDefaults(item));
+        });
+    }, [itemIdInicial]);
 
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
         const val = e.target.value;
@@ -43,7 +63,7 @@ export function EstoqueViewer() {
     };
 
     const handleDelete = async () => {
-        const itemAtual = items[selectedIndex];
+        const itemAtual = itemForcado ?? items[selectedIndex];
         if (!itemAtual?.id) return;
 
         const confirmado = window.confirm(`Excluir "${itemAtual.item}"?`);
@@ -51,24 +71,18 @@ export function EstoqueViewer() {
 
         await itensService.deletar(itemAtual.id);
 
-        // Navega para o anterior se possível
+        setItemForcado(null);
         setSelectedIndex(i => Math.max(0, i - 1));
-        // Recarrega a lista
         setFiltros(searchInput ? { item: searchInput } : {});
     };
 
-    const navigate = (delta: number) =>
+    const navigate = (delta: number) => {
+        setItemForcado(null); // limpa item forçado ao navegar manualmente
         setSelectedIndex(i => Math.min(items.length - 1, Math.max(0, i + delta)));
+    };
 
-    const selectedItem = items[selectedIndex]
-        ? {
-            ...emptyItem,
-            ...Object.fromEntries(
-                Object.entries(items[selectedIndex])
-                    .filter(([_, v]) => v !== undefined && v !== null)
-            ),
-        }
-        : emptyItem;
+    const selectedItem = itemForcado
+        ?? (items[selectedIndex] ? mergeComDefaults(items[selectedIndex]) : emptyItem);
 
     return (
         <div className="min-h-screen bg-[#d4d0c8] p-4 space-y-3">
@@ -104,11 +118,12 @@ export function EstoqueViewer() {
                                 min={1}
                                 max={items.length}
                                 value={selectedIndex + 1}
-                                onChange={e =>
+                                onChange={e => {
+                                    setItemForcado(null);
                                     setSelectedIndex(
                                         Math.min(items.length - 1, Math.max(0, Number(e.target.value) - 1))
-                                    )
-                                }
+                                    );
+                                }}
                                 className="w-14 border border-gray-300 rounded px-1 text-center"
                             />
                             {' '}de <strong>{items.length}</strong> nesta página
@@ -151,7 +166,7 @@ export function EstoqueViewer() {
             </div>
 
             <ItemForm
-                key={selectedItem.codigoItem || `empty-${selectedIndex}`}
+                key={selectedItem.codigoItem || selectedItem.id || `empty-${selectedIndex}`}
                 initialItem={selectedItem}
                 onDelete={handleDelete}
             />
