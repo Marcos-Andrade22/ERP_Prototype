@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { itensService } from "../../lib/item-service";
 import type { EstoqueItem } from "../../model/EstoqueItem";
 
-export function ResultadosBuscaPage() {
+export default function ResultadosBuscaPage() {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const [resultados, setResultados] = useState<EstoqueItem[]>([]);

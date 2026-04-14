@@ -19,7 +19,7 @@ const campoParaParam: Partial<Record<keyof EstoqueItem, string>> = {
     revisado: "revisado",
 };
 
-export function BuscaPage() {
+export default function BuscaPage() {
     const navigate = useNavigate();
 
     const handleSearch = (filtros: Partial<EstoqueItem>) => {
