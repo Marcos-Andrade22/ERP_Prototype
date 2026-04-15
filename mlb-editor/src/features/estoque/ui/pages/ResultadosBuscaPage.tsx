@@ -80,7 +80,7 @@ export default function ResultadosBuscaPage() {
                 {!loading && resultados.map((item, index) => (
                     <div
                         key={item.id ?? index}
-                        onClick={() => navigate("/estoque", { state: { itemId: item.id } })}
+                        onClick={() => navigate(`/estoque/item/${item.id}`)}
                         className={`grid grid-cols-12 px-3 py-2 text-[11px] border-b border-gray-200 cursor-pointer transition-colors
                             ${index % 2 === 0 ? "bg-white" : "bg-[#f5f5f5]"} hover:bg-orange-50`}
                     >
