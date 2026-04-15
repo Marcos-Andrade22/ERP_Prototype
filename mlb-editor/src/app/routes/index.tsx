@@ -6,7 +6,6 @@ import RegistroPage from "../../features/auth/ui/pages/RegistroPage";
 import DashboardPage from "../../features/dashboard/ui/pages/DashboardPage";
 
 import EstoquePage from "../../features/estoque/ui/pages/EstoquePage";
-import GerenciarItensPage from "../../features/estoque/ui/pages/GerenciarItensPage";
 import BuscaPage from "../../features/estoque/ui/pages/BuscaPage";
 import ResultadosBuscaPage from "../../features/estoque/ui/pages/ResultadosBuscaPage";
 
@@ -26,7 +25,6 @@ export default function AppRoutes() {
                 <Route path="/dashboard" element={<DashboardPage />} />
 
                 <Route path="/estoque" element={<EstoquePage />} />
-                <Route path="/estoque/itens" element={<GerenciarItensPage />} />
                 <Route path="/estoque/busca" element={<BuscaPage />} />
                 <Route path="/estoque/resultados" element={<ResultadosBuscaPage />} />
 
