@@ -30,7 +30,7 @@ export default function BuscaPage() {
                 params.set(paramName, String(valor));
             }
         }
-        navigate(`/busca/resultados?${params.toString()}`);
+        navigate(`/estoque/resultados?${params.toString()}`);
     };
 
     return (
