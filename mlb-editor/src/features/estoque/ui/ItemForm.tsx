@@ -12,6 +12,7 @@ import { PanelML } from "./panels/PanelML";
 import { PanelSite } from "./panels/PanelSite";
 import MlbTable from "../../../components/MlbTable";
 import { useCampoEstilos } from "../lib/useCampoEstilos";
+import type { CampoEstilo } from "../lib/campo-estilos-service";
 
 type Tab = "medidas" | "valores" | "historico" | "imagem";
 type Panel = "ml" | "site";
@@ -32,19 +33,17 @@ export function ItemForm({ initialItem, onDelete }: Props) {
   const { item, handleChange, save, saveStatus } = useItemForm(initialItem);
   const [activeTab, setActiveTab] = useState<Tab>("medidas");
   const [activePanel, setActivePanel] = useState<Panel>("ml");
-  const { cores, setCorCampo } = useCampoEstilos(item.id);
+  const { getEstilo, setEstiloCampo } = useCampoEstilos(item.id);
 
   const handleContainerBlur = (e: React.FocusEvent<HTMLDivElement>) => {
-    if (!e.currentTarget.contains(e.relatedTarget)) {
-      save();
-    }
+    if (!e.currentTarget.contains(e.relatedTarget)) save();
   };
 
-  // Cria props de cor para um campo específico
-  const corProps = (campo: string) => ({
+  // Helper: retorna as props de estilo para um campo
+  const estiloProps = (campo: string) => ({
     fieldName: campo,
-    corHex: cores[campo],
-    onCorChange: (hex: string | null) => setCorCampo(campo, hex),
+    estilo: getEstilo(campo),
+    onEstiloChange: (patch: Partial<CampoEstilo>) => setEstiloCampo(campo, patch),
   });
 
   const tabBtn = (tab: Tab, label: string) => (
@@ -83,20 +82,14 @@ export function ItemForm({ initialItem, onDelete }: Props) {
         <div className="flex items-end gap-2">
           <MlbTable itemId={item.id!} />
           <div className="w-32">
-            <TextInput label="Código:" value={item.codigoItem} onChange={handleChange("codigoItem")} {...corProps("codigoItem")} />
+            <TextInput label="Código:" value={item.codigoItem} onChange={handleChange("codigoItem")} {...estiloProps("codigoItem")} />
           </div>
         </div>
-
         <div className="flex items-center gap-4">
           <span className="text-[11px]">{saveStatusLabel[saveStatus]}</span>
-          <span className="text-[11px] font-semibold text-red-600">
-            Disponíveis: {item.quantidade}
-          </span>
+          <span className="text-[11px] font-semibold text-red-600">Disponíveis: {item.quantidade}</span>
           {item.id && onDelete && (
-            <button
-              onClick={onDelete}
-              className="px-2 py-1 text-[11px] border border-red-300 text-red-600 hover:bg-red-50 transition-colors"
-            >
+            <button onClick={onDelete} className="px-2 py-1 text-[11px] border border-red-300 text-red-600 hover:bg-red-50 transition-colors">
               Excluir
             </button>
           )}
@@ -105,59 +98,29 @@ export function ItemForm({ initialItem, onDelete }: Props) {
 
       {/* Linha 1 */}
       <div className="grid grid-cols-12 gap-x-2 gap-y-2 mb-2">
-        <div className="col-span-5">
-          <TextInput label="Item:" value={item.item} onChange={handleChange("item")} {...corProps("item")} />
-        </div>
-        <div className="col-span-1">
-          <TextInput label="Unid.:" value={item.unid} onChange={handleChange("unid")} {...corProps("unid")} />
-        </div>
-        <div className="col-span-2">
-          <TextInput label="Marca:" value={item.marca} onChange={handleChange("marca")} {...corProps("marca")} />
-        </div>
-        <div className="col-span-1">
-          <TextInput label="Tipo Ret.:" value={item.tipoRetentor} onChange={handleChange("tipoRetentor")} {...corProps("tipoRetentor")} />
-        </div>
-        <div className="col-span-1">
-          <TextInput label="Material:" value={item.material} onChange={handleChange("material")} {...corProps("material")} />
-        </div>
-        <div className="col-span-1">
-          <TextInput label="Setor:" value={item.setor} onChange={handleChange("setor")} {...corProps("setor")} />
-        </div>
-        <div className="col-span-1">
-          <TextInput label="Local:" value={item.local} onChange={handleChange("local")} {...corProps("local")} />
-        </div>
+        <div className="col-span-5"><TextInput label="Item:" value={item.item} onChange={handleChange("item")} {...estiloProps("item")} /></div>
+        <div className="col-span-1"><TextInput label="Unid.:" value={item.unid} onChange={handleChange("unid")} {...estiloProps("unid")} /></div>
+        <div className="col-span-2"><TextInput label="Marca:" value={item.marca} onChange={handleChange("marca")} {...estiloProps("marca")} /></div>
+        <div className="col-span-1"><TextInput label="Tipo Ret.:" value={item.tipoRetentor} onChange={handleChange("tipoRetentor")} {...estiloProps("tipoRetentor")} /></div>
+        <div className="col-span-1"><TextInput label="Material:" value={item.material} onChange={handleChange("material")} {...estiloProps("material")} /></div>
+        <div className="col-span-1"><TextInput label="Setor:" value={item.setor} onChange={handleChange("setor")} {...estiloProps("setor")} /></div>
+        <div className="col-span-1"><TextInput label="Local:" value={item.local} onChange={handleChange("local")} {...estiloProps("local")} /></div>
       </div>
 
       {/* Linha 2 */}
       <div className="grid grid-cols-12 gap-x-2 gap-y-2 mb-2">
-        <div className="col-span-3">
-          <TextInput label="Montadora:" value={item.montadora} onChange={handleChange("montadora")} {...corProps("montadora")} />
-        </div>
-        <div className="col-span-3">
-          <TextInput label="Aplicações:" value={item.aplicacoes} onChange={handleChange("aplicacoes")} {...corProps("aplicacoes")} />
-        </div>
-        <div className="col-span-3">
-          <TextInput label="Data de Fabricação:" value={item.dataFabricacao} onChange={handleChange("dataFabricacao")} {...corProps("dataFabricacao")} />
-        </div>
-        <div className="col-span-3">
-          <TextInput label="Versão / Motor:" value={item.versaoMotor} onChange={handleChange("versaoMotor")} {...corProps("versaoMotor")} />
-        </div>
+        <div className="col-span-3"><TextInput label="Montadora:" value={item.montadora} onChange={handleChange("montadora")} {...estiloProps("montadora")} /></div>
+        <div className="col-span-3"><TextInput label="Aplicações:" value={item.aplicacoes} onChange={handleChange("aplicacoes")} {...estiloProps("aplicacoes")} /></div>
+        <div className="col-span-3"><TextInput label="Data de Fabricação:" value={item.dataFabricacao} onChange={handleChange("dataFabricacao")} {...estiloProps("dataFabricacao")} /></div>
+        <div className="col-span-3"><TextInput label="Versão / Motor:" value={item.versaoMotor} onChange={handleChange("versaoMotor")} {...estiloProps("versaoMotor")} /></div>
       </div>
 
       {/* Linha 3 */}
       <div className="grid grid-cols-12 gap-x-2 gap-y-2 mb-3">
-        <div className="col-span-5">
-          <TextInput label="Fornecedor:" value={item.fornecedor} onChange={handleChange("fornecedor")} {...corProps("fornecedor")} />
-        </div>
-        <div className="col-span-2">
-          <NumberInput label="Qtde. mínima:" value={item.quantidadeMinima} onChange={handleChange("quantidadeMinima")} />
-        </div>
-        <div className="col-span-2">
-          <TextInput label="MLB:" value={item.mlb} onChange={handleChange("mlb")} {...corProps("mlb")} />
-        </div>
-        <div className="col-span-2">
-          <TextInput label="Posição:" value={item.posicao} onChange={handleChange("posicao")} {...corProps("posicao")} />
-        </div>
+        <div className="col-span-5"><TextInput label="Fornecedor:" value={item.fornecedor} onChange={handleChange("fornecedor")} {...estiloProps("fornecedor")} /></div>
+        <div className="col-span-2"><NumberInput label="Qtde. mínima:" value={item.quantidadeMinima} onChange={handleChange("quantidadeMinima")} /></div>
+        <div className="col-span-2"><TextInput label="MLB:" value={item.mlb} onChange={handleChange("mlb")} {...estiloProps("mlb")} /></div>
+        <div className="col-span-2"><TextInput label="Posição:" value={item.posicao} onChange={handleChange("posicao")} {...estiloProps("posicao")} /></div>
       </div>
 
       {/* Seção inferior */}
@@ -172,7 +135,7 @@ export function ItemForm({ initialItem, onDelete }: Props) {
           <div className="bg-white min-h-[200px]">
             {activeTab === "medidas" && <TabMedidas item={item} handleChange={handleChange} />}
             {activeTab === "valores" && <TabValores item={item} handleChange={handleChange} />}
-            {activeTab === "historico" && <TabHistorico item={item} handleChange={handleChange} corProps={corProps} />}
+            {activeTab === "historico" && <TabHistorico item={item} handleChange={handleChange} estiloProps={estiloProps} />}
             {activeTab === "imagem" && <TabImagem item={item} handleChange={handleChange} />}
           </div>
         </div>
@@ -183,8 +146,8 @@ export function ItemForm({ initialItem, onDelete }: Props) {
             {panelBtn("site", "Site")}
           </div>
           <div className="bg-white min-h-[200px]">
-            {activePanel === "ml" && <PanelML item={item} handleChange={handleChange} corProps={corProps} />}
-            {activePanel === "site" && <PanelSite item={item} handleChange={handleChange} corProps={corProps} />}
+            {activePanel === "ml" && <PanelML item={item} handleChange={handleChange} estiloProps={estiloProps} />}
+            {activePanel === "site" && <PanelSite item={item} handleChange={handleChange} estiloProps={estiloProps} />}
           </div>
         </div>
       </div>

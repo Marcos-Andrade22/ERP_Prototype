@@ -1,31 +1,43 @@
 import { useCallback, useEffect, useState } from "react";
 import { campoEstilosService } from "./campo-estilos-service";
+import type { CampoEstilo } from "./campo-estilos-service";
+
+const ESTILO_PADRAO: CampoEstilo = {
+  corHex: null,
+  negrito: false,
+  italico: false,
+  sublinhado: false,
+  highlight: null,
+};
 
 export function useCampoEstilos(itemId: number | undefined) {
-  const [cores, setCores] = useState<Record<string, string>>({});
+  const [estilos, setEstilos] = useState<Record<string, CampoEstilo>>({});
 
   useEffect(() => {
     if (!itemId) return;
-    campoEstilosService.buscar(itemId).then(setCores).catch(console.error);
+    campoEstilosService.buscar(itemId).then(setEstilos).catch(console.error);
   }, [itemId]);
 
-  const setCorCampo = useCallback(
-    (campo: string, corHex: string | null) => {
+  const setEstiloCampo = useCallback(
+    (campo: string, patch: Partial<CampoEstilo>) => {
       if (!itemId) return;
 
       // Atualiza estado local imediatamente (otimista)
-      setCores(prev => {
-        const next = { ...prev };
-        if (corHex === null) delete next[campo];
-        else next[campo] = corHex;
-        return next;
-      });
+      setEstilos(prev => ({
+        ...prev,
+        [campo]: { ...(prev[campo] ?? ESTILO_PADRAO), ...patch },
+      }));
 
       // Persiste no backend
-      campoEstilosService.salvar(itemId, campo, corHex).catch(console.error);
+      campoEstilosService.salvar(itemId, campo, patch).catch(console.error);
     },
     [itemId]
   );
 
-  return { cores, setCorCampo };
+  const getEstilo = useCallback(
+    (campo: string): CampoEstilo => estilos[campo] ?? ESTILO_PADRAO,
+    [estilos]
+  );
+
+  return { getEstilo, setEstiloCampo };
 }
