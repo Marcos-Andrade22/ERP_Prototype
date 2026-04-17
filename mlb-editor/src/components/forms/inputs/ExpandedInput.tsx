@@ -1,42 +1,51 @@
 import { useEffect, useRef, useState } from "react";
+import type { CampoEstilo } from "../../../features/estoque/lib/campo-estilos-service";
+
+const ESTILO_PADRAO: CampoEstilo = {
+  corHex: null,
+  negrito: false,
+  italico: false,
+  sublinhado: false,
+  highlight: null,
+};
 
 interface Props {
   label: string;
   value: string;
-  corHex?: string;
+  estilo?: CampoEstilo;
   onSave: (value: string) => void;
   onClose: () => void;
 }
 
-export function ExpandedInput({ label, value, corHex, onSave, onClose }: Props) {
+export function ExpandedInput({ label, value, estilo, onSave, onClose }: Props) {
   const [draft, setDraft] = useState(value);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const estiloAtivo = estilo ?? ESTILO_PADRAO;
 
-  // Foca o textarea ao abrir
   useEffect(() => {
     textareaRef.current?.focus();
-    // Posiciona cursor no final
     const len = draft.length;
     textareaRef.current?.setSelectionRange(len, len);
   }, []);
 
-  // Fecha com Escape
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        onSave(draft);
-        onClose();
-      }
+      if (e.key === "Escape") { onSave(draft); onClose(); }
     };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
   }, [draft, onSave, onClose]);
 
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget) {
-      onSave(draft);
-      onClose();
-    }
+    if (e.target === e.currentTarget) { onSave(draft); onClose(); }
+  };
+
+  const textareaStyle: React.CSSProperties = {
+    color: estiloAtivo.corHex ?? undefined,
+    fontWeight: estiloAtivo.negrito ? "bold" : undefined,
+    fontStyle: estiloAtivo.italico ? "italic" : undefined,
+    textDecoration: estiloAtivo.sublinhado ? "underline" : undefined,
+    backgroundColor: estiloAtivo.highlight ?? undefined,
   };
 
   return (
@@ -46,7 +55,6 @@ export function ExpandedInput({ label, value, corHex, onSave, onClose }: Props) 
       onClick={handleBackdropClick}
     >
       <div className="bg-white border border-gray-400 shadow-xl rounded w-[480px] max-w-[90vw]">
-        {/* Header */}
         <div className="flex items-center justify-between px-3 py-2 bg-[#ececec] border-b border-gray-300">
           <span className="text-xs font-semibold text-gray-700">{label}</span>
           <button
@@ -56,8 +64,6 @@ export function ExpandedInput({ label, value, corHex, onSave, onClose }: Props) 
             Fechar
           </button>
         </div>
-
-        {/* Textarea */}
         <div className="p-3">
           <textarea
             ref={textareaRef}
@@ -65,10 +71,9 @@ export function ExpandedInput({ label, value, corHex, onSave, onClose }: Props) 
             onChange={e => setDraft(e.target.value)}
             rows={6}
             className="w-full border border-gray-300 rounded-sm px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 resize-y"
-            style={{ color: corHex ?? "inherit" }}
+            style={textareaStyle}
           />
         </div>
-
         <div className="px-3 pb-2 text-[10px] text-gray-400">
           Pressione <kbd className="bg-gray-100 border border-gray-300 px-1 rounded">Esc</kbd> ou clique fora para fechar
         </div>

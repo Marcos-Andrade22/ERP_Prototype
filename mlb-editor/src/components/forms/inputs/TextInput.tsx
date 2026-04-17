@@ -3,11 +3,20 @@ import { Field } from "../Field";
 import type { InputFieldProps } from "../../../types/form";
 import { ContextMenu } from "./ContextMenu";
 import { ExpandedInput } from "./ExpandedInput";
+import type { CampoEstilo } from "../../../features/estoque/lib/campo-estilos-service";
+
+const ESTILO_PADRAO: CampoEstilo = {
+  corHex: null,
+  negrito: false,
+  italico: false,
+  sublinhado: false,
+  highlight: null,
+};
 
 interface ExtendedProps extends InputFieldProps {
   fieldName?: string;
-  corHex?: string;
-  onCorChange?: (corHex: string | null) => void;
+  estilo?: CampoEstilo;
+  onEstiloChange?: (patch: Partial<CampoEstilo>) => void;
 }
 
 export function TextInput({
@@ -21,20 +30,22 @@ export function TextInput({
   error,
   className = "",
   fieldName,
-  corHex,
-  onCorChange,
+  estilo,
+  onEstiloChange,
   ...props
 }: ExtendedProps) {
   const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
   const [expanded, setExpanded] = useState(false);
 
+  const estiloAtivo = estilo ?? ESTILO_PADRAO;
+
   const handleContextMenu = useCallback(
     (e: React.MouseEvent) => {
-      if (!onCorChange) return;
+      if (!onEstiloChange) return;
       e.preventDefault();
       setMenu({ x: e.clientX, y: e.clientY });
     },
-    [onCorChange]
+    [onEstiloChange]
   );
 
   const handleClick = useCallback(() => {
@@ -43,6 +54,16 @@ export function TextInput({
   }, [disabled]);
 
   const stringValue = String(value ?? "");
+
+  // Monta o style dinâmico do input
+  const inputStyle: React.CSSProperties = {
+    color: estiloAtivo.corHex ?? undefined,
+    fontWeight: estiloAtivo.negrito ? "bold" : undefined,
+    fontStyle: estiloAtivo.italico ? "italic" : undefined,
+    textDecoration: estiloAtivo.sublinhado ? "underline" : undefined,
+    backgroundColor: estiloAtivo.highlight ?? undefined,
+    cursor: "pointer",
+  };
 
   return (
     <>
@@ -56,7 +77,7 @@ export function TextInput({
           placeholder={placeholder}
           disabled={disabled}
           readOnly
-          style={{ color: corHex ?? undefined, cursor: "pointer" }}
+          style={inputStyle}
           className={`h-6 w-full px-2 py-1 border rounded-sm text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
             error
               ? "border-red-300 bg-red-50"
@@ -68,12 +89,12 @@ export function TextInput({
         />
       </Field>
 
-      {menu && onCorChange && (
+      {menu && onEstiloChange && (
         <ContextMenu
           x={menu.x}
           y={menu.y}
-          corAtual={corHex ?? null}
-          onSelect={onCorChange}
+          estilo={estiloAtivo}
+          onChange={(patch) => onEstiloChange(patch)}
           onClose={() => setMenu(null)}
         />
       )}
@@ -82,7 +103,7 @@ export function TextInput({
         <ExpandedInput
           label={label ?? fieldName ?? ""}
           value={stringValue}
-          corHex={corHex}
+          estilo={estiloAtivo}
           onSave={(val) => onChange(val)}
           onClose={() => setExpanded(false)}
         />

@@ -1,7 +1,6 @@
 import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
 
 export const itens = sqliteTable("itens", {
-  // ─── Identificação ───────────────────────────────────────
   id: integer("id").primaryKey({ autoIncrement: true }),
   codigoItem: text("codigo_item"),
   referencia: text("referencia"),
@@ -32,39 +31,27 @@ export const itens = sqliteTable("itens", {
   unid: text("unid"),
   valorAnuncio: real("valor_anuncio").default(0),
   versaoMotor: text("versao_motor"),
-
-  // ─── Valores ─────────────────────────────────────────────
   valorUnitarioFixo: real("valor_unitario_fixo").default(0),
   valorUnitario: real("valor_unitario").default(0),
   valorComercialVenda: real("valor_comercial_venda").default(0),
   substituicaoTributariaValor: real("substituicao_tributaria_valor").default(0),
-
-  // ─── Estoque ─────────────────────────────────────────────
   quantidade: integer("quantidade").default(0),
   flags: text("flags"),
-
-  // ─── Medidas ─────────────────────────────────────────────
   medidaInterna: real("medida_interna").default(0),
   medidaExterna: real("medida_externa").default(0),
   altura: real("altura").default(0),
   pesoTotal: real("peso_total").default(0),
-
-  // ─── Histórico / Extra ────────────────────────────────────
   historico: text("historico"),
   marcaDaAplicacao: text("marca_da_aplicacao"),
   imagemUrl: text("imagem_url"),
   pedir: integer("pedir", { mode: "boolean" }).default(false),
   valorTotal: real("valor_total").default(0),
-
-  // ─── Novos Campos ────────────────────────────────────
   lucroTipo: text("lucro_tipo").default("percent"),
   lucroValor: real("lucro_valor").default(0),
   acrescimoPercent: real("acrescimo_percent").default(0),
   situacaoSite: text("situacao_site"),
   dataAnuncioSite: text("data_anuncio_site"),
   valorSite: real("valor_site").default(0),
-
-  // ─── Controle ────────────────────────────────────────────
   criadoEm: text("criado_em"),
   atualizadoEm: text("atualizado_em"),
 });
@@ -95,8 +82,6 @@ export const itensMLB = sqliteTable("itens_mlb", {
 });
 
 // ─── Estilos de campo ─────────────────────────────────────────
-// Armazena a cor hex de campos individuais por item.
-// Futuro: adicionar colunas negrito, italico, etc.
 export const campoEstilos = sqliteTable("campo_estilos", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   itemId: integer("item_id")
@@ -104,4 +89,8 @@ export const campoEstilos = sqliteTable("campo_estilos", {
     .references(() => itens.id, { onDelete: "cascade" }),
   campo: text("campo").notNull(),
   corHex: text("cor_hex"),
+  negrito: integer("negrito", { mode: "boolean" }).default(false),
+  italico: integer("italico", { mode: "boolean" }).default(false),
+  sublinhado: integer("sublinhado", { mode: "boolean" }).default(false),
+  highlight: text("highlight"),
 });
