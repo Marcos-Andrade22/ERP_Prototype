@@ -27,3 +27,5 @@ dist-ssr
 # DB Logs
 database.sqlite-shm
 database.sqlite-wal
+*.sqlite-shm
+*.sqlite-wal
