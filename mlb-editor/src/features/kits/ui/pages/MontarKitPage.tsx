@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useKits } from "../../lib/useKits";
 import { useItens } from "../../../estoque/lib/useItens";
+import { useItensTodos } from "../../lib/useItensTodos";
 import { KitList } from "../KitList";
 import { KitForm } from "../KitForm";
 import type { Kit } from "../../model/Kit";
@@ -9,7 +10,13 @@ import type { Kit } from "../../model/Kit";
 export default function MontarKitPage() {
   const navigate = useNavigate();
   const { kits, loading, error, criar, atualizar, deletar } = useKits();
-  const { items: itens } = useItens();
+
+  // Itens paginados — usados apenas na KitList para exibir valores
+  const { items: itensPaginados } = useItens();
+
+  // Todos os itens — usados no dropdown de composição do kit
+  const { itens: itensTodos, loading: loadingItens } = useItensTodos();
+
   const [modo, setModo] = useState<"lista" | "novo" | "editar">("lista");
   const [kitEditando, setKitEditando] = useState<Kit | null>(null);
 
@@ -68,7 +75,6 @@ export default function MontarKitPage() {
       <div className="p-4 space-y-4">
         {/* Painel principal */}
         <div className="bg-[#ececec] border border-gray-400">
-          {/* Header do painel */}
           <div
             className="flex items-center justify-between px-4 py-2 text-white"
             style={{ backgroundColor: "#22252A" }}
@@ -84,7 +90,6 @@ export default function MontarKitPage() {
             )}
           </div>
 
-          {/* Conteúdo */}
           <div className="bg-white">
             {loading && (
               <div className="px-4 py-8 text-center text-[11px] text-gray-400">Carregando kits...</div>
@@ -93,19 +98,25 @@ export default function MontarKitPage() {
               <div className="px-4 py-4 text-center text-[11px] text-red-600 border-b border-red-200 bg-red-50">{error}</div>
             )}
             {!loading && modo === "lista" && (
-              <KitList kits={kits} itens={itens} onEditar={handleEditar} onDeletar={handleDeletar} />
+              <KitList kits={kits} itens={itensPaginados} onEditar={handleEditar} onDeletar={handleDeletar} />
             )}
           </div>
         </div>
 
         {/* Form de novo/editar */}
         {(modo === "novo" || modo === "editar") && (
-          <KitForm
-            kitInicial={kitEditando ?? undefined}
-            itens={itens}
-            onSalvar={handleSalvar}
-            onCancelar={handleCancelar}
-          />
+          loadingItens ? (
+            <div className="bg-[#ececec] border border-gray-400 px-4 py-6 text-center text-[11px] text-gray-400">
+              Carregando itens do estoque...
+            </div>
+          ) : (
+            <KitForm
+              kitInicial={kitEditando ?? undefined}
+              itens={itensTodos}
+              onSalvar={handleSalvar}
+              onCancelar={handleCancelar}
+            />
+          )
         )}
       </div>
     </div>

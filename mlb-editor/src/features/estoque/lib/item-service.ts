@@ -27,6 +27,12 @@ export const itensService = {
     return data;
   },
 
+  // Carrega todos os itens de uma vez (para uso em dropdowns/kits)
+  listarTodos: async (): Promise<EstoqueItem[]> => {
+    const { data } = await api.get("/itens", { params: { limit: 9999, page: 1 } });
+    return data.data as EstoqueItem[];
+  },
+
   buscarPorId: async (id: string | number) => {
     const { data } = await api.get(`/itens/${id}`);
     return data;
