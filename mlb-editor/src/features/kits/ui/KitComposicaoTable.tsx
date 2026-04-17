@@ -15,15 +15,17 @@ interface DropdownBuscaProps {
   onChangeTexto: (texto: string) => void;
 }
 
+// Normaliza qualquer valor para string segura para busca
+const str = (v: unknown): string =>
+  v == null ? "" : String(v).toLowerCase();
+
 function DropdownBusca({ valor, itens, onSelecionar, onChangeTexto }: DropdownBuscaProps) {
   const [aberto, setAberto] = useState(false);
   const [query, setQuery] = useState(valor);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Sincroniza query quando valor externo muda (ex: editar kit existente)
   useEffect(() => { setQuery(valor); }, [valor]);
 
-  // Fecha ao clicar fora
   useEffect(() => {
     function handleClickFora(e: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
@@ -34,13 +36,15 @@ function DropdownBusca({ valor, itens, onSelecionar, onChangeTexto }: DropdownBu
     return () => document.removeEventListener("mousedown", handleClickFora);
   }, []);
 
-  const resultados = query.trim().length === 0
+  const q = query.trim().toLowerCase();
+
+  const resultados = q.length === 0
     ? []
     : itens
         .filter(it =>
-          it.codigoItem.toLowerCase().includes(query.toLowerCase()) ||
-          it.referencia?.toLowerCase().includes(query.toLowerCase()) ||
-          it.item?.toLowerCase().includes(query.toLowerCase())
+          str(it.codigoItem).includes(q) ||
+          str(it.referencia).includes(q) ||
+          str(it.item).includes(q)
         )
         .slice(0, 10);
 
@@ -63,7 +67,7 @@ function DropdownBusca({ valor, itens, onSelecionar, onChangeTexto }: DropdownBu
         type="text"
         value={query}
         onChange={handleChange}
-        onFocus={() => query.trim().length > 0 && setAberto(true)}
+        onFocus={() => q.length > 0 && setAberto(true)}
         className="w-full h-5 px-1 border border-gray-300 rounded-sm text-[11px] focus:outline-none focus:ring-1 focus:ring-blue-500"
         placeholder="Ex: RET-001"
         autoComplete="off"
@@ -71,8 +75,8 @@ function DropdownBusca({ valor, itens, onSelecionar, onChangeTexto }: DropdownBu
 
       {aberto && resultados.length > 0 && (
         <div className="absolute z-50 top-full left-0 mt-0.5 w-[420px] bg-white border border-gray-400 shadow-lg">
-          {/* Cabeçalho */}
-          <div className="grid text-[10px] font-semibold text-gray-500 uppercase bg-[#dcdcdc] border-b border-gray-400"
+          <div
+            className="grid text-[10px] font-semibold text-gray-500 uppercase bg-[#dcdcdc] border-b border-gray-400"
             style={{ gridTemplateColumns: "1fr 1fr auto" }}
           >
             <span className="px-2 py-1">Código</span>
@@ -80,7 +84,6 @@ function DropdownBusca({ valor, itens, onSelecionar, onChangeTexto }: DropdownBu
             <span className="px-2 py-1 text-right w-20">Qtde. Estoque</span>
           </div>
 
-          {/* Resultados */}
           {resultados.map(item => (
             <button
               key={item.codigoItem}
@@ -89,7 +92,7 @@ function DropdownBusca({ valor, itens, onSelecionar, onChangeTexto }: DropdownBu
               style={{ gridTemplateColumns: "1fr 1fr auto" }}
             >
               <span className="px-2 py-1.5 font-medium text-gray-800 truncate">{item.codigoItem}</span>
-              <span className="px-2 py-1.5 text-gray-500 truncate">{item.referencia || —}</span>
+              <span className="px-2 py-1.5 text-gray-500 truncate">{item.referencia || "—"}</span>
               <span className={`px-2 py-1.5 text-right w-20 tabular-nums font-semibold ${
                 item.quantidade <= 0
                   ? "text-red-500"
@@ -101,11 +104,12 @@ function DropdownBusca({ valor, itens, onSelecionar, onChangeTexto }: DropdownBu
               </span>
             </button>
           ))}
+        </div>
+      )}
 
-          {/* Nenhum resultado */}
-          {resultados.length === 0 && query.trim().length > 0 && (
-            <div className="px-3 py-2 text-[11px] text-gray-400 italic">Nenhum item encontrado.</div>
-          )}
+      {aberto && q.length > 0 && resultados.length === 0 && (
+        <div className="absolute z-50 top-full left-0 mt-0.5 w-[420px] bg-white border border-gray-400 shadow-sm px-3 py-2 text-[11px] text-gray-400 italic">
+          Nenhum item encontrado.
         </div>
       )}
     </div>
