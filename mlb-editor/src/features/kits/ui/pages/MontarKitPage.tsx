@@ -9,7 +9,7 @@ import type { Kit } from "../../model/Kit";
 export default function MontarKitPage() {
   const navigate = useNavigate();
   const { kits, loading, error, criar, atualizar, deletar } = useKits();
-  const { itens } = useItens();
+  const { items: itens } = useItens();
   const [modo, setModo] = useState<"lista" | "novo" | "editar">("lista");
   const [kitEditando, setKitEditando] = useState<Kit | null>(null);
 
