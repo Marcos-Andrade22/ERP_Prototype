@@ -10,11 +10,27 @@ export function useItemForm(initialItem: EstoqueItem) {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Refs sempre atualizadas com os valores mais recentes
+  const itemRef = useRef(item);
+  const temAlteracoesRef = useRef(temAlteracoes);
+  itemRef.current = item;
+  temAlteracoesRef.current = temAlteracoes;
+
+  // Reseta apenas quando trocar de item (ID diferente)
   useEffect(() => {
     setItem(initialItem);
     setTemAlteracoes(false);
     setSaveStatus("idle");
-  }, [initialItem]);
+  }, [initialItem.id]);
+
+  // Salva ao desmontar (ex: navegar para outra tela)
+  useEffect(() => {
+    return () => {
+      if (temAlteracoesRef.current && itemRef.current?.id) {
+        itensService.atualizar(itemRef.current.id, itemRef.current);
+      }
+    };
+  }, []);
 
   const handleChange = (key: keyof EstoqueItem) => (value: any) => {
     setItem((prev) => ({ ...prev, [key]: value }));
@@ -22,13 +38,16 @@ export function useItemForm(initialItem: EstoqueItem) {
   };
 
   const save = useCallback(async () => {
-    if (!temAlteracoes) return;
+    // Lê sempre da ref — nunca stale
+    if (!temAlteracoesRef.current) return;
+    const currentItem = itemRef.current;
+
     setSaveStatus("saving");
     try {
-      if (item.id) {
-        await itensService.atualizar(item.id, item);
+      if (currentItem.id) {
+        await itensService.atualizar(currentItem.id, currentItem);
       } else {
-        await itensService.criar(item);
+        await itensService.criar(currentItem);
       }
       setTemAlteracoes(false);
       setSaveStatus("saved");
@@ -38,7 +57,7 @@ export function useItemForm(initialItem: EstoqueItem) {
       console.error(err);
       setSaveStatus("error");
     }
-  }, [item, temAlteracoes]);
+  }, []);
 
   return { item, handleChange, save, saveStatus, temAlteracoes };
 }
