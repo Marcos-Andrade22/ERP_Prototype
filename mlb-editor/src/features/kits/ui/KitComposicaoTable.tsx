@@ -15,7 +15,6 @@ interface DropdownBuscaProps {
   onChangeTexto: (texto: string) => void;
 }
 
-// Normaliza qualquer valor para string segura para busca
 const str = (v: unknown): string =>
   v == null ? "" : String(v).toLowerCase();
 
@@ -36,7 +35,6 @@ function DropdownBusca({ valor, itens, onSelecionar, onChangeTexto }: DropdownBu
     return () => document.removeEventListener("mousedown", handleClickFora);
   }, []);
 
-  // Divide a query em termos individuais e exige que todos apareçam no haystack
   const termos = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
 
   const resultados = termos.length === 0
@@ -44,14 +42,21 @@ function DropdownBusca({ valor, itens, onSelecionar, onChangeTexto }: DropdownBu
     : itens
         .filter(it => {
           const haystack = [
-            str(it.codigoItem), // null em muitos itens agora, mas será útil no futuro
-            str(it.item),       // campo principal: contém código + descrição concatenados
+            str(it.codigoItem),
+            str(it.item),
             str(it.referencia),
             str(it.marca),
           ].join(" ");
           return termos.every(termo => haystack.includes(termo));
         })
-        .slice(0, 10);
+        // Ordena: itens cujo campo "item" começa com a query vêm primeiro
+        .sort((a, b) => {
+          const q = query.trim().toLowerCase();
+          const aComeca = str(a.item).startsWith(q) ? 0 : 1;
+          const bComeca = str(b.item).startsWith(q) ? 0 : 1;
+          return aComeca - bComeca;
+        })
+        .slice(0, 20);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const v = e.target.value;
@@ -60,8 +65,9 @@ function DropdownBusca({ valor, itens, onSelecionar, onChangeTexto }: DropdownBu
     setAberto(true);
   };
 
+  // Sempre exibe o campo "item" após seleção
   const handleSelecionar = (item: EstoqueItem) => {
-    setQuery(item.codigoItem ?? item.item);
+    setQuery(item.item ?? item.codigoItem ?? "");
     onSelecionar(item);
     setAberto(false);
   };
@@ -89,28 +95,31 @@ function DropdownBusca({ valor, itens, onSelecionar, onChangeTexto }: DropdownBu
             <span className="px-2 py-1 text-right w-20">Qtde. Estoque</span>
           </div>
 
-          {resultados.map((item, idx) => (
-            <button
-              key={item.codigoItem ?? idx}
-              onMouseDown={e => { e.preventDefault(); handleSelecionar(item); }}
-              className="w-full grid text-left text-[11px] hover:bg-blue-50 border-b border-gray-200 last:border-0 transition-colors"
-              style={{ gridTemplateColumns: "120px 1fr auto" }}
-            >
-              <span className="px-2 py-1.5 font-medium text-gray-800 truncate">
-                {item.codigoItem || <span className="text-gray-400 italic">sem código</span>}
-              </span>
-              <span className="px-2 py-1.5 text-gray-600 truncate">{item.item || "—"}</span>
-              <span className={`px-2 py-1.5 text-right w-20 tabular-nums font-semibold ${
-                item.quantidade <= 0
-                  ? "text-red-500"
-                  : item.quantidade <= (item.quantidadeMinima ?? 0)
-                  ? "text-orange-500"
-                  : "text-green-700"
-              }`}>
-                {item.quantidade}
-              </span>
-            </button>
-          ))}
+          {/* scroll a partir de 10 itens, mostra até 20 */}
+          <div className="overflow-y-auto" style={{ maxHeight: "280px" }}>
+            {resultados.map((item, idx) => (
+              <button
+                key={item.codigoItem ?? idx}
+                onMouseDown={e => { e.preventDefault(); handleSelecionar(item); }}
+                className="w-full grid text-left text-[11px] hover:bg-blue-50 border-b border-gray-200 last:border-0 transition-colors"
+                style={{ gridTemplateColumns: "120px 1fr auto" }}
+              >
+                <span className="px-2 py-1.5 font-medium text-gray-800 truncate">
+                  {item.codigoItem || <span className="text-gray-400 italic">sem código</span>}
+                </span>
+                <span className="px-2 py-1.5 text-gray-600 truncate">{item.item || "—"}</span>
+                <span className={`px-2 py-1.5 text-right w-20 tabular-nums font-semibold ${
+                  item.quantidade <= 0
+                    ? "text-red-500"
+                    : item.quantidade <= (item.quantidadeMinima ?? 0)
+                    ? "text-orange-500"
+                    : "text-green-700"
+                }`}>
+                  {item.quantidade}
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
@@ -135,8 +144,9 @@ export function KitComposicaoTable({ composicao, itens, onChange }: Props) {
   };
 
   const selecionarItem = (index: number, item: EstoqueItem) => {
+    // Salva o campo "item" como identificador principal (codigoItem é null na maioria)
     onChange(composicao.map((linha, i) =>
-      i === index ? { ...linha, codigoItem: item.codigoItem ?? item.item } : linha
+      i === index ? { ...linha, codigoItem: item.item ?? item.codigoItem ?? "" } : linha
     ));
   };
 
@@ -159,8 +169,9 @@ export function KitComposicaoTable({ composicao, itens, onChange }: Props) {
         </thead>
         <tbody>
           {composicao.map((linha, i) => {
+            // Busca por campo "item" (identificador atual) ou codigoItem (futuro)
             const itemEncontrado = itens.find(
-              it => it.codigoItem === linha.codigoItem || it.item === linha.codigoItem
+              it => it.item === linha.codigoItem || it.codigoItem === linha.codigoItem
             );
             const valorUnit = Number(itemEncontrado?.valorUnitario ?? 0);
             const subtotal = valorUnit * linha.quantidade;
