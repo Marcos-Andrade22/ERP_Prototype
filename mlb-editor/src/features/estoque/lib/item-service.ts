@@ -28,8 +28,9 @@ export const itensService = {
   },
 
   // Carrega todos os itens de uma vez (para uso em dropdowns/kits)
+  // Usa o parâmetro all=true para bypassar o limite de paginação do backend
   listarTodos: async (): Promise<EstoqueItem[]> => {
-    const { data } = await api.get("/itens", { params: { limit: 9999, page: 1 } });
+    const { data } = await api.get("/itens", { params: { all: "true" } });
     return data.data as EstoqueItem[];
   },
 
