@@ -28,7 +28,6 @@ export function KitBaixa({ kit, itens, onBaixaRealizada }: Props) {
     setMensagem(null);
 
     try {
-      // Para cada componente do kit, atualiza a quantidade no estoque
       for (const linha of kit.composicao) {
         const itemEstoque = itens.find(
           i => String(i.item) === linha.codigoItem || String(i.codigoItem) === linha.codigoItem
@@ -36,10 +35,14 @@ export function KitBaixa({ kit, itens, onBaixaRealizada }: Props) {
         if (!itemEstoque?.id) continue;
 
         const novaQtde = Math.max(0, itemEstoque.quantidade - linha.quantidade * quantidade);
+        // Envia apenas o campo alterado — Partial<EstoqueItem> agora aceito pelo service
         await itensService.atualizar(itemEstoque.id, { quantidade: novaQtde });
       }
 
-      setMensagem({ tipo: "ok", texto: `Baixa de ${quantidade} ${quantidade === 1 ? "kit" : "kits"} realizada com sucesso.` });
+      setMensagem({
+        tipo: "ok",
+        texto: `Baixa de ${quantidade} ${quantidade === 1 ? "kit" : "kits"} realizada com sucesso.`,
+      });
       setQuantidade(1);
       onBaixaRealizada();
     } catch {

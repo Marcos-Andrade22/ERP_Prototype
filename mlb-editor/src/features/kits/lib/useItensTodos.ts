@@ -1,15 +1,17 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { itensService } from "../../estoque/lib/item-service";
 import type { EstoqueItem } from "../../estoque/model/EstoqueItem";
 
 /**
  * Carrega TODOS os itens do estoque sem paginação.
- * Usado exclusivamente para popular dropdowns (ex: composição de kit).
+ * Usado para popular dropdowns (ex: composição de kit) e cálculos de disponibilidade.
+ * Expõe `recarregar()` para forcçar novo fetch após operações de baixa.
  */
 export function useItensTodos() {
   const [itens, setItens] = useState<EstoqueItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
+  const [tick, setTick] = useState(0);
 
   useEffect(() => {
     let cancelado = false;
@@ -26,7 +28,9 @@ export function useItensTodos() {
         if (!cancelado) setLoading(false);
       });
     return () => { cancelado = true; };
-  }, []);
+  }, [tick]);
 
-  return { itens, loading, erro };
+  const recarregar = useCallback(() => setTick(t => t + 1), []);
+
+  return { itens, loading, erro, recarregar };
 }
