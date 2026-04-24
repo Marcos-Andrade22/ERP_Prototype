@@ -36,16 +36,21 @@ function DropdownBusca({ valor, itens, onSelecionar, onChangeTexto }: DropdownBu
     return () => document.removeEventListener("mousedown", handleClickFora);
   }, []);
 
-  const q = query.trim().toLowerCase();
+  // Divide a query em termos individuais e exige que todos apareçam no haystack
+  const termos = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
 
-  const resultados = q.length === 0
+  const resultados = termos.length === 0
     ? []
     : itens
-        .filter(it =>
-          str(it.codigoItem).includes(q) ||
-          str(it.referencia).includes(q) ||
-          str(it.item).includes(q)
-        )
+        .filter(it => {
+          const haystack = [
+            str(it.codigoItem), // null em muitos itens agora, mas será útil no futuro
+            str(it.item),       // campo principal: contém código + descrição concatenados
+            str(it.referencia),
+            str(it.marca),
+          ].join(" ");
+          return termos.every(termo => haystack.includes(termo));
+        })
         .slice(0, 10);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -56,7 +61,7 @@ function DropdownBusca({ valor, itens, onSelecionar, onChangeTexto }: DropdownBu
   };
 
   const handleSelecionar = (item: EstoqueItem) => {
-    setQuery(item.codigoItem);
+    setQuery(item.codigoItem ?? item.item);
     onSelecionar(item);
     setAberto(false);
   };
@@ -67,32 +72,34 @@ function DropdownBusca({ valor, itens, onSelecionar, onChangeTexto }: DropdownBu
         type="text"
         value={query}
         onChange={handleChange}
-        onFocus={() => q.length > 0 && setAberto(true)}
+        onFocus={() => termos.length > 0 && setAberto(true)}
         className="w-full h-5 px-1 border border-gray-300 rounded-sm text-[11px] focus:outline-none focus:ring-1 focus:ring-blue-500"
-        placeholder="Ex: RET-001"
+        placeholder="Ex: 7150 ret"
         autoComplete="off"
       />
 
       {aberto && resultados.length > 0 && (
-        <div className="absolute z-50 top-full left-0 mt-0.5 w-[420px] bg-white border border-gray-400 shadow-lg">
+        <div className="absolute z-50 top-full left-0 mt-0.5 w-[520px] bg-white border border-gray-400 shadow-lg">
           <div
             className="grid text-[10px] font-semibold text-gray-500 uppercase bg-[#dcdcdc] border-b border-gray-400"
-            style={{ gridTemplateColumns: "1fr 1fr auto" }}
+            style={{ gridTemplateColumns: "120px 1fr auto" }}
           >
             <span className="px-2 py-1">Código</span>
-            <span className="px-2 py-1">Referência</span>
+            <span className="px-2 py-1">Item</span>
             <span className="px-2 py-1 text-right w-20">Qtde. Estoque</span>
           </div>
 
-          {resultados.map(item => (
+          {resultados.map((item, idx) => (
             <button
-              key={item.codigoItem}
+              key={item.codigoItem ?? idx}
               onMouseDown={e => { e.preventDefault(); handleSelecionar(item); }}
               className="w-full grid text-left text-[11px] hover:bg-blue-50 border-b border-gray-200 last:border-0 transition-colors"
-              style={{ gridTemplateColumns: "1fr 1fr auto" }}
+              style={{ gridTemplateColumns: "120px 1fr auto" }}
             >
-              <span className="px-2 py-1.5 font-medium text-gray-800 truncate">{item.codigoItem}</span>
-              <span className="px-2 py-1.5 text-gray-500 truncate">{item.referencia || "—"}</span>
+              <span className="px-2 py-1.5 font-medium text-gray-800 truncate">
+                {item.codigoItem || <span className="text-gray-400 italic">sem código</span>}
+              </span>
+              <span className="px-2 py-1.5 text-gray-600 truncate">{item.item || "—"}</span>
               <span className={`px-2 py-1.5 text-right w-20 tabular-nums font-semibold ${
                 item.quantidade <= 0
                   ? "text-red-500"
@@ -107,8 +114,8 @@ function DropdownBusca({ valor, itens, onSelecionar, onChangeTexto }: DropdownBu
         </div>
       )}
 
-      {aberto && q.length > 0 && resultados.length === 0 && (
-        <div className="absolute z-50 top-full left-0 mt-0.5 w-[420px] bg-white border border-gray-400 shadow-sm px-3 py-2 text-[11px] text-gray-400 italic">
+      {aberto && termos.length > 0 && resultados.length === 0 && (
+        <div className="absolute z-50 top-full left-0 mt-0.5 w-[520px] bg-white border border-gray-400 shadow-sm px-3 py-2 text-[11px] text-gray-400 italic">
           Nenhum item encontrado.
         </div>
       )}
@@ -129,7 +136,7 @@ export function KitComposicaoTable({ composicao, itens, onChange }: Props) {
 
   const selecionarItem = (index: number, item: EstoqueItem) => {
     onChange(composicao.map((linha, i) =>
-      i === index ? { ...linha, codigoItem: item.codigoItem } : linha
+      i === index ? { ...linha, codigoItem: item.codigoItem ?? item.item } : linha
     ));
   };
 
@@ -142,7 +149,7 @@ export function KitComposicaoTable({ composicao, itens, onChange }: Props) {
       <table className="w-full text-[11px] border-collapse mb-2">
         <thead>
           <tr className="bg-[#dcdcdc]">
-            <th className="text-left px-2 py-1.5 border border-gray-400 font-semibold">Código do Item</th>
+            <th className="text-left px-2 py-1.5 border border-gray-400 font-semibold">Código / Item</th>
             <th className="text-left px-2 py-1.5 border border-gray-400 font-semibold w-36">Descrição</th>
             <th className="text-center px-2 py-1.5 border border-gray-400 font-semibold w-20">Qtde.</th>
             <th className="text-right px-2 py-1.5 border border-gray-400 font-semibold w-28">Valor Unit.</th>
@@ -152,7 +159,9 @@ export function KitComposicaoTable({ composicao, itens, onChange }: Props) {
         </thead>
         <tbody>
           {composicao.map((linha, i) => {
-            const itemEncontrado = itens.find(it => it.codigoItem === linha.codigoItem);
+            const itemEncontrado = itens.find(
+              it => it.codigoItem === linha.codigoItem || it.item === linha.codigoItem
+            );
             const valorUnit = Number(itemEncontrado?.valorUnitario ?? 0);
             const subtotal = valorUnit * linha.quantidade;
             return (
