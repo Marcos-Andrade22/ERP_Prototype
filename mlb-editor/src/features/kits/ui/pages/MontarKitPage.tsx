@@ -1,24 +1,32 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useKits } from "../../lib/useKits";
-import { useItens } from "../../../estoque/lib/useItens";
 import { useItensTodos } from "../../lib/useItensTodos";
 import { KitList } from "../KitList";
 import { KitForm } from "../KitForm";
+import { KitBaixa } from "../KitBaixa";
 import type { Kit } from "../../model/Kit";
 
 export default function MontarKitPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
   const { kits, loading, error, criar, atualizar, deletar } = useKits();
-
-  // Itens paginados — usados apenas na KitList para exibir valores
-  const { items: itensPaginados } = useItens();
-
-  // Todos os itens — usados no dropdown de composição do kit
-  const { itens: itensTodos, loading: loadingItens } = useItensTodos();
+  const { itens: itensTodos, loading: loadingItens, recarregar } = useItensTodos();
 
   const [modo, setModo] = useState<"lista" | "novo" | "editar">("lista");
   const [kitEditando, setKitEditando] = useState<Kit | null>(null);
+
+  // Abre direto no modo editar se vier ?editar=ID (ex.: clique no kit no estoque)
+  useEffect(() => {
+    const idParam = searchParams.get("editar");
+    if (!idParam || kits.length === 0) return;
+    const kit = kits.find(k => String(k.id) === idParam);
+    if (kit) {
+      setKitEditando(kit);
+      setModo("editar");
+    }
+  }, [searchParams, kits]);
 
   const handleEditar = (kit: Kit) => {
     setKitEditando(kit);
@@ -43,6 +51,11 @@ export default function MontarKitPage() {
   const handleCancelar = () => {
     setModo("lista");
     setKitEditando(null);
+  };
+
+  // Callback após baixa: recarrega itens para atualizar qtdes disponíveis
+  const handleBaixaRealizada = () => {
+    recarregar();
   };
 
   return (
@@ -73,7 +86,7 @@ export default function MontarKitPage() {
       </div>
 
       <div className="p-4 space-y-4">
-        {/* Painel principal */}
+        {/* Lista de kits */}
         <div className="bg-[#ececec] border border-gray-400">
           <div
             className="flex items-center justify-between px-4 py-2 text-white"
@@ -98,24 +111,39 @@ export default function MontarKitPage() {
               <div className="px-4 py-4 text-center text-[11px] text-red-600 border-b border-red-200 bg-red-50">{error}</div>
             )}
             {!loading && modo === "lista" && (
-              <KitList kits={kits} itens={itensPaginados} onEditar={handleEditar} onDeletar={handleDeletar} />
+              <KitList
+                kits={kits}
+                itens={itensTodos}
+                onEditar={handleEditar}
+                onDeletar={handleDeletar}
+              />
             )}
           </div>
         </div>
 
-        {/* Form de novo/editar */}
+        {/* Formulário de novo/editar */}
         {(modo === "novo" || modo === "editar") && (
           loadingItens ? (
             <div className="bg-[#ececec] border border-gray-400 px-4 py-6 text-center text-[11px] text-gray-400">
               Carregando itens do estoque...
             </div>
           ) : (
-            <KitForm
-              kitInicial={kitEditando ?? undefined}
-              itens={itensTodos}
-              onSalvar={handleSalvar}
-              onCancelar={handleCancelar}
-            />
+            <>
+              <KitForm
+                kitInicial={kitEditando ?? undefined}
+                itens={itensTodos}
+                onSalvar={handleSalvar}
+                onCancelar={handleCancelar}
+              />
+              {/* Painel de baixa — só exibido ao editar um kit existente */}
+              {modo === "editar" && kitEditando && (
+                <KitBaixa
+                  kit={kitEditando}
+                  itens={itensTodos}
+                  onBaixaRealizada={handleBaixaRealizada}
+                />
+              )}
+            </>
           )
         )}
       </div>

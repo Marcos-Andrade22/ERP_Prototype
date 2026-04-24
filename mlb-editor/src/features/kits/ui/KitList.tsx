@@ -1,7 +1,7 @@
 import type { Kit } from "../model/Kit";
 import type { EstoqueItem } from "../../estoque/model/EstoqueItem";
 import { calcularValorKit } from "../lib/kit-calc";
-import { validarEstoqueKit } from "../lib/kit-balance";
+import { calcularQuantidadeDisponivelKit } from "../lib/kit-disponibilidade";
 
 const TIPO_LABEL: Record<string, string> = {
   kit: "Kit",
@@ -34,14 +34,14 @@ export function KitList({ kits, itens, onEditar, onDeletar }: Props) {
           <th className="text-left px-3 py-2 border border-gray-400 font-semibold">Tipo</th>
           <th className="text-left px-3 py-2 border border-gray-400 font-semibold">Itens</th>
           <th className="text-right px-3 py-2 border border-gray-400 font-semibold">Valor Total</th>
-          <th className="text-center px-3 py-2 border border-gray-400 font-semibold">Estoque OK?</th>
+          <th className="text-center px-3 py-2 border border-gray-400 font-semibold">Qtde. Disponível</th>
           <th className="text-center px-3 py-2 border border-gray-400 font-semibold w-24">Ações</th>
         </tr>
       </thead>
       <tbody>
         {kits.map((kit) => {
           const valor = calcularValorKit(kit, itens);
-          const estoqueOk = validarEstoqueKit(kit, 1, itens);
+          const qtdeDisponivel = calcularQuantidadeDisponivelKit(kit, itens);
           return (
             <tr key={kit.id} className="hover:bg-gray-50 transition-colors">
               <td className="px-3 py-1.5 border border-gray-300 font-medium">{kit.nome}</td>
@@ -53,10 +53,14 @@ export function KitList({ kits, itens, onEditar, onDeletar }: Props) {
                 {valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
               </td>
               <td className="px-3 py-1.5 border border-gray-300 text-center">
-                <span className={`inline-block px-2 py-0.5 rounded-sm text-[10px] font-semibold ${
-                  estoqueOk ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"
+                <span className={`inline-block px-2 py-0.5 rounded-sm text-[10px] font-semibold tabular-nums ${
+                  qtdeDisponivel === 0
+                    ? "bg-red-100 text-red-600"
+                    : qtdeDisponivel <= 3
+                    ? "bg-orange-100 text-orange-600"
+                    : "bg-green-100 text-green-700"
                 }`}>
-                  {estoqueOk ? "✓ OK" : "✗ Insuf."}
+                  {qtdeDisponivel}
                 </span>
               </td>
               <td className="px-3 py-1.5 border border-gray-300">
