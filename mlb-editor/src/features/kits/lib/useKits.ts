@@ -2,19 +2,6 @@ import { useCallback, useEffect, useState } from "react";
 import { kitsService } from "./kits-service";
 import type { Kit } from "../model/Kit";
 
-// Garante que composicao é sempre um array, independente do que a API devolver
-function normalizar(kit: Kit): Kit {
-  return {
-    ...kit,
-    composicao:
-      typeof kit.composicao === "string"
-        ? JSON.parse(kit.composicao)
-        : Array.isArray(kit.composicao)
-        ? kit.composicao
-        : [],
-  };
-}
-
 export function useKits() {
   const [kits, setKits] = useState<Kit[]>([]);
   const [loading, setLoading] = useState(true);
@@ -24,8 +11,9 @@ export function useKits() {
     try {
       setLoading(true);
       setError(null);
-      const data: Kit[] = await kitsService.listar();
-      setKits(data.map(normalizar));
+      // kitsService.listar() já retorna kits normalizados
+      const data = await kitsService.listar();
+      setKits(data);
     } catch {
       setError("Erro ao carregar kits");
     } finally {
@@ -40,7 +28,7 @@ export function useKits() {
   const criar = useCallback(
     async (kit: Omit<Kit, "id" | "valorCalculado">) => {
       const novo = await kitsService.criar(kit);
-      setKits((prev) => [...prev, normalizar(novo)]);
+      setKits((prev) => [...prev, novo]);
       return novo;
     },
     []
@@ -53,7 +41,7 @@ export function useKits() {
     ) => {
       const atualizado = await kitsService.atualizar(id, patch);
       setKits((prev) =>
-        prev.map((k) => (k.id === id ? normalizar(atualizado) : k))
+        prev.map((k) => (k.id === id ? atualizado : k))
       );
       return atualizado;
     },
