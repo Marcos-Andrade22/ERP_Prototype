@@ -81,7 +81,25 @@ export const itensMLB = sqliteTable("itens_mlb", {
   atualizadoEm: text("atualizado_em"),
 });
 
-// ─── Estilos de campo ─────────────────────────────────────────
+// MLBs vinculados a kits — mesma estrutura da itens_mlb mas referenciando kits.id (text)
+export const kitsMLB = sqliteTable("kits_mlb", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  kitId: text("kit_id")
+    .notNull()
+    .references(() => kits.id, { onDelete: "cascade" }),
+  valor: text("valor").notNull(),
+  modelo: text("modelo").default(""),
+  ean: integer("ean", { mode: "boolean" }).default(false),
+  cubagem: integer("cubagem", { mode: "boolean" }).default(false),
+  otimizado: integer("otimizado", { mode: "boolean" }).default(false),
+  full: integer("full", { mode: "boolean" }).default(false),
+  patrocinados: integer("patrocinados", { mode: "boolean" }).default(false),
+  clipe: integer("clipe", { mode: "boolean" }).default(false),
+  revisado: integer("revisado", { mode: "boolean" }).default(false),
+  criadoEm: text("criado_em"),
+  atualizadoEm: text("atualizado_em"),
+});
+
 export const campoEstilos = sqliteTable("campo_estilos", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   itemId: integer("item_id")

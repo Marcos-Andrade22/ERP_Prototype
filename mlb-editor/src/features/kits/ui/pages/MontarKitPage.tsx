@@ -5,6 +5,7 @@ import { useItensTodos } from "../../lib/useItensTodos";
 import { KitList } from "../KitList";
 import { KitForm } from "../KitForm";
 import { KitBaixa } from "../KitBaixa";
+import { KitMlbModal } from "../KitMlbModal";
 import type { Kit } from "../../model/Kit";
 
 export default function MontarKitPage() {
@@ -16,8 +17,8 @@ export default function MontarKitPage() {
 
   const [modo, setModo] = useState<"lista" | "novo" | "editar">("lista");
   const [kitEditando, setKitEditando] = useState<Kit | null>(null);
+  const [kitMlb, setKitMlb] = useState<Kit | null>(null);
 
-  // Abre direto no modo editar se vier ?editar=ID (ex.: clique no kit no estoque)
   useEffect(() => {
     const idParam = searchParams.get("editar");
     if (!idParam || kits.length === 0) return;
@@ -53,7 +54,6 @@ export default function MontarKitPage() {
     setKitEditando(null);
   };
 
-  // Callback após baixa: recarrega itens para atualizar qtdes disponíveis
   const handleBaixaRealizada = () => {
     recarregar();
   };
@@ -116,6 +116,7 @@ export default function MontarKitPage() {
                 itens={itensTodos}
                 onEditar={handleEditar}
                 onDeletar={handleDeletar}
+                onGerenciarMlb={setKitMlb}
               />
             )}
           </div>
@@ -135,7 +136,6 @@ export default function MontarKitPage() {
                 onSalvar={handleSalvar}
                 onCancelar={handleCancelar}
               />
-              {/* Painel de baixa — só exibido ao editar um kit existente */}
               {modo === "editar" && kitEditando && (
                 <KitBaixa
                   kit={kitEditando}
@@ -147,6 +147,14 @@ export default function MontarKitPage() {
           )
         )}
       </div>
+
+      {/* Modal MLB */}
+      {kitMlb && (
+        <KitMlbModal
+          kit={kitMlb}
+          onFechar={() => setKitMlb(null)}
+        />
+      )}
     </div>
   );
 }
