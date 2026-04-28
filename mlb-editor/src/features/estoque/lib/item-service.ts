@@ -27,6 +27,11 @@ export const itensService = {
     return data;
   },
 
+  listarTodos: async (): Promise<EstoqueItem[]> => {
+    const { data } = await api.get("/itens", { params: { all: "true" } });
+    return data.data as EstoqueItem[];
+  },
+
   buscarPorId: async (id: string | number) => {
     const { data } = await api.get(`/itens/${id}`);
     return data;
@@ -37,7 +42,8 @@ export const itensService = {
     return data;
   },
 
-  atualizar: async (id: string | number, item: EstoqueItem) => {
+  // Aceita objeto parcial para atualizações pontuais (ex: baixa de estoque)
+  atualizar: async (id: string | number, item: Partial<EstoqueItem>) => {
     const { data } = await api.put(`/itens/${id}`, item);
     return data;
   },

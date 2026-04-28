@@ -1,243 +1,208 @@
-import { useState, useEffect } from 'react';
-import type { MlbItem } from '../types/mlb.types';
-import { useMlb } from '../features/estoque/lib/useMlb';
+import { useEffect, useState } from "react";
+import { useMlb } from "../features/estoque/lib/useMlb";
+import { parsearMlbBruto, type MlbEntryInput } from "../shared/lib/mlb-service";
 
-type Props = {
-    itemId: number; // ← substitui mlbString
-};
+const FLAGS: { key: keyof Omit<MlbEntryInput, "valor" | "modelo">; label: string }[] = [
+  { key: "ean",          label: "EAN" },
+  { key: "cubagem",      label: "Cubagem" },
+  { key: "otimizado",    label: "Otimizado" },
+  { key: "full",         label: "Full" },
+  { key: "patrocinados", label: "Patrocin." },
+  { key: "clipe",        label: "Clipe" },
+  { key: "revisado",     label: "Revisado" },
+];
 
-export default function MlbTable({ itemId }: Props) {
-    const { mlbs: mlbsDoBackend, loading, salvar } = useMlb({ itemId });
+const MLB_VAZIO = (): MlbEntryInput => ({
+  valor: "",
+  modelo: "",
+  ean: false,
+  cubagem: false,
+  otimizado: false,
+  full: false,
+  patrocinados: false,
+  clipe: false,
+  revisado: false,
+});
 
-    const backendParaUI = (dados: typeof mlbsDoBackend): MlbItem[] =>
-        dados.map(d => ({
-            id: String(d.id),
-            valor: d.valor,
-            isEditing: false,
-            ean: d.ean,
-            cubagem: d.cubagem,
-            otimizado: d.otimizado,
-            full: d.full,
-            patrocinados: d.patrocinados,
-            clipe: d.clipe,
-            revisado: d.revisado,
-        }));
+interface Props {
+  itemId: number;
+  nomeItem?: string;
+}
 
-    const [items, setItems] = useState<MlbItem[]>([]);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [hasChanges, setHasChanges] = useState(false);
-    const [originalItems, setOriginalItems] = useState<MlbItem[]>([]);
+export default function MlbTable({ itemId, nomeItem }: Props) {
+  const { mlbs, loading: loadingInicial, salvar } = useMlb({ itemId });
 
-    // Sincroniza quando os dados do backend chegam
-    useEffect(() => {
-        const convertidos = backendParaUI(mlbsDoBackend);
-        setItems(convertidos);
-        setOriginalItems(convertidos);
-        setHasChanges(false);
-    }, [mlbsDoBackend]);
+  const [lista, setLista] = useState<MlbEntryInput[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [salvando, setSalvando] = useState(false);
+  const [mensagem, setMensagem] = useState<{ tipo: "ok" | "erro"; texto: string } | null>(null);
+  const [rawImport, setRawImport] = useState("");
+  const [mostrarImport, setMostrarImport] = useState(false);
 
-    useEffect(() => {
-        setHasChanges(JSON.stringify(items) !== JSON.stringify(originalItems));
-    }, [items, originalItems]);
+  useEffect(() => {
+    setLista(mlbs.map(({ id: _id, itemId: _iid, kitId: _kid, ...rest }) => rest));
+  }, [mlbs]);
 
-    function updateFlag(id: string, field: keyof Omit<MlbItem, 'id' | 'valor' | 'isEditing'>, value: boolean) {
-        setItems(curr => curr.map(it => (it.id === id ? { ...it, [field]: value } : it)));
+  const atualizar = (index: number, campo: keyof MlbEntryInput, valor: unknown) => {
+    setLista(prev => prev.map((e, i) => i === index ? { ...e, [campo]: valor } : e));
+  };
+
+  const adicionarLinha = () => setLista(prev => [...prev, MLB_VAZIO()]);
+  const remover = (index: number) => setLista(prev => prev.filter((_, i) => i !== index));
+
+  const importarRaw = () => {
+    const parsed = parsearMlbBruto(rawImport);
+    if (parsed.length === 0) {
+      setMensagem({ tipo: "erro", texto: "Nenhum código de 10 dígitos encontrado." });
+      return;
     }
+    setLista(prev => {
+      const existentes = new Set(prev.map(e => e.valor));
+      return [...prev, ...parsed.filter(p => !existentes.has(p.valor))];
+    });
+    setRawImport("");
+    setMostrarImport(false);
+    setMensagem({ tipo: "ok", texto: `${parsed.length} MLB(s) importado(s).` });
+  };
 
-    function toggleEdit(id: string) {
-        setItems(curr => curr.map(it => (it.id === id ? { ...it, isEditing: !it.isEditing } : it)));
+  const handleSalvar = async () => {
+    const invalidos = lista.filter(e => !/^\d{10}$/.test(e.valor));
+    if (invalidos.length > 0) {
+      setMensagem({ tipo: "erro", texto: `${invalidos.length} linha(s) com código inválido.` });
+      return;
     }
-
-    function deleteItem(id: string) {
-        setItems(curr => curr.filter(it => it.id !== id));
+    setSalvando(true);
+    setMensagem(null);
+    try {
+      await salvar(lista);
+      setMensagem({ tipo: "ok", texto: "MLBs salvos com sucesso." });
+    } catch {
+      setMensagem({ tipo: "erro", texto: "Erro ao salvar. Verifique a conexão." });
+    } finally {
+      setSalvando(false);
     }
+  };
 
-    function addItem() {
-        setItems(curr => [
-            ...curr,
-            {
-                id: crypto.randomUUID(),
-                valor: '',
-                isEditing: true,
-                ean: false,
-                cubagem: false,
-                otimizado: false,
-                full: false,
-                patrocinados: false,
-                clipe: false,
-                revisado: false,
-            },
-        ]);
-    }
+  return (
+    <>
+      <button
+        onClick={() => setIsModalOpen(true)}
+        className="text-[11px] px-3 py-1 border border-green-600 text-green-700 hover:bg-green-50 transition-colors font-semibold"
+      >
+        {loadingInicial ? "Carregando..." : "Gerenciar MLB"}
+      </button>
 
-    async function confirmChanges() {
-        // Remove isEditing antes de enviar ao backend
-        const payload = items
-            .filter(i => i.valor.trim() !== '')
-            .map(({ id: _id, isEditing: _ie, ...rest }) => rest);
+      {isModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+          onClick={e => { if (e.target === e.currentTarget) setIsModalOpen(false); }}
+        >
+          <div className="bg-white flex flex-col" style={{ width: "960px", maxWidth: "95vw", maxHeight: "90vh" }}>
 
-        const sucesso = await salvar(payload);
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-3 text-white shrink-0" style={{ backgroundColor: "#22252A" }}>
+              <div>
+                <span className="text-[11px] font-bold uppercase tracking-wider">Gerenciar MLB</span>
+                {nomeItem && <span className="ml-3 text-[11px] opacity-50">{nomeItem}</span>}
+              </div>
+              <button onClick={() => setIsModalOpen(false)} className="text-white opacity-60 hover:opacity-100 text-lg leading-none">✕</button>
+            </div>
 
-        if (sucesso) {
-            setOriginalItems([...items]);
-            setHasChanges(false);
-            setIsModalOpen(false);
-        }
-    }
+            {/* Toolbar */}
+            <div className="flex items-center gap-2 px-4 py-2 bg-[#ececec] border-b border-gray-300 shrink-0">
+              <button onClick={adicionarLinha} className="text-[11px] px-3 py-1 border border-gray-400 hover:bg-gray-200 transition-colors">+ Adicionar linha</button>
+              <button onClick={() => setMostrarImport(v => !v)} className="text-[11px] px-3 py-1 border border-blue-400 text-blue-600 hover:bg-blue-50 transition-colors">
+                {mostrarImport ? "▲ Fechar importação" : "▼ Importar texto bruto"}
+              </button>
+              <span className="ml-auto text-[11px] text-gray-500">{lista.length} MLB(s)</span>
+            </div>
 
-    return (
-        <>
-            {/* Botão Principal */}
-            <button
-                onClick={() => setIsModalOpen(true)}
-                className="bg-green-600 hover:bg-green-700 active:bg-green-800 text-white px-3 py-1 text-[11px] font-semibold border border-green-700 rounded transition-colors cursor-pointer"
-            >
-                {loading ? 'Carregando...' : 'Gerenciar MLB'}
-            </button>
-
-            {/* Modal */}
-            {isModalOpen && (
-                <div
-                    className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-6"
-                    onClick={() => !hasChanges && setIsModalOpen(false)}
-                >
-                    <div
-                        className="bg-white rounded-3xl shadow-2xl max-w-7xl max-h-[95vh] w-full h-[90vh] flex flex-col overflow-hidden"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        {/* Header do Modal */}
-                        <div className="bg-gradient-to-r from-gray-50 to-blue-50 p-8 border-b-2 border-gray-200 flex-shrink-0">
-                            <div className="flex items-center justify-between">
-                                <h2 className="text-3xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
-                                    Gerenciar Itens MLB
-                                </h2>
-                                <div className="flex items-center gap-3">
-                                    {hasChanges && (
-                                        <button
-                                            onClick={confirmChanges}
-                                            disabled={loading}
-                                            className="bg-green-500 hover:bg-green-600 active:bg-green-700 text-white px-6 py-3 rounded-xl font-bold shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer disabled:opacity-50"
-                                        >
-                                            {loading ? '⏳ Salvando...' : '✅ Confirmar Alterações'}
-                                        </button>
-                                    )}
-                                    <button
-                                        onClick={addItem}
-                                        disabled={hasChanges}
-                                        className={`px-6 py-3 rounded-xl font-semibold text-white shadow-md hover:shadow-lg transition-all duration-200 flex items-center gap-2 ${hasChanges
-                                            ? 'bg-gray-400 cursor-not-allowed'
-                                            : 'bg-blue-500 hover:bg-blue-600 active:bg-blue-700 cursor-pointer'
-                                            }`}
-                                    >
-                                        <span>+</span> Adicionar Item
-                                    </button>
-                                    <button
-                                        onClick={() => setIsModalOpen(false)}
-                                        disabled={hasChanges}
-                                        className={`px-6 py-3 rounded-xl font-semibold text-white shadow-md hover:shadow-lg transition-all duration-200 ${hasChanges
-                                            ? 'bg-gray-400 cursor-not-allowed'
-                                            : 'bg-gray-500 hover:bg-gray-600 active:bg-gray-700 cursor-pointer'
-                                            }`}
-                                    >
-                                        Fechar
-                                    </button>
-                                </div>
-                            </div>
-                            {hasChanges && (
-                                <div className="mt-4 p-4 bg-blue-50 border-2 border-blue-200 rounded-2xl text-sm font-medium text-blue-800 animate-pulse">
-                                    🔄 Você tem alterações não salvas. Use "Confirmar" para salvar antes de fechar.
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Tabela Scrollável */}
-                        <div className="flex-1 overflow-auto">
-                            <table className="w-full table-fixed">
-                                <thead className="sticky top-0 bg-gradient-to-r from-gray-100 to-gray-200 z-20 shadow-sm">
-                                    <tr>
-                                        <th className="w-72 p-4 text-left border-b-2 border-gray-300 font-bold text-gray-700 uppercase tracking-wide text-sm">MLB</th>
-                                        <th className="w-20 p-4 text-center border-b-2 border-gray-300 font-bold text-gray-700 text-xs">EAN</th>
-                                        <th className="w-24 p-4 text-center border-b-2 border-gray-300 font-bold text-gray-700 text-xs">Cubagem</th>
-                                        <th className="w-28 p-4 text-center border-b-2 border-gray-300 font-bold text-gray-700 text-xs">Otimizado</th>
-                                        <th className="w-20 p-4 text-center border-b-2 border-gray-300 font-bold text-gray-700 text-xs">Full</th>
-                                        <th className="w-32 p-4 text-center border-b-2 border-gray-300 font-bold text-gray-700 text-xs">Patrocinados</th>
-                                        <th className="w-20 p-4 text-center border-b-2 border-gray-300 font-bold text-gray-700 text-xs">Clipe</th>
-                                        <th className="w-24 p-4 text-center border-b-2 border-gray-300 font-bold text-gray-700 text-xs">Revisado</th>
-                                        <th className="w-32 p-4 text-center border-b-2 border-gray-300 font-bold text-gray-700 text-xs">Ações</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-200">
-                                    {items.map((item) => (
-                                        <tr
-                                            key={item.id}
-                                            className={`transition-all duration-200 hover:bg-gray-50 ${item.isEditing ? 'bg-yellow-50 border-2 border-yellow-200' : ''}`}
-                                        >
-                                            <td className="p-4">
-                                                <input
-                                                    type="text"
-                                                    value={item.valor}
-                                                    disabled={!item.isEditing}
-                                                    onChange={(e) =>
-                                                        setItems((curr) =>
-                                                            curr.map((it) =>
-                                                                it.id === item.id ? { ...it, valor: e.target.value } : it
-                                                            )
-                                                        )
-                                                    }
-                                                    className={`w-full px-4 py-3 rounded-xl font-mono text-lg transition-all duration-200 border-2 focus:outline-none focus:ring-4 ${item.isEditing
-                                                        ? 'border-blue-400 ring-blue-200 bg-white shadow-md ring-4 ring-blue-100'
-                                                        : 'border-gray-300 bg-gray-50 cursor-not-allowed opacity-70'
-                                                        }`}
-                                                    placeholder="Digite o código MLB..."
-                                                />
-                                            </td>
-                                            <td className="p-4 text-center">
-                                                <input type="checkbox" checked={item.ean} onChange={(e) => updateFlag(item.id, 'ean', e.target.checked)} disabled={!item.isEditing} className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 cursor-pointer" />
-                                            </td>
-                                            <td className="p-4 text-center">
-                                                <input type="checkbox" checked={item.cubagem} onChange={(e) => updateFlag(item.id, 'cubagem', e.target.checked)} disabled={!item.isEditing} className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 cursor-pointer" />
-                                            </td>
-                                            <td className="p-4 text-center">
-                                                <input type="checkbox" checked={item.otimizado} onChange={(e) => updateFlag(item.id, 'otimizado', e.target.checked)} disabled={!item.isEditing} className="w-5 h-5 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500 focus:ring-2 cursor-pointer" />
-                                            </td>
-                                            <td className="p-4 text-center">
-                                                <input type="checkbox" checked={item.full} onChange={(e) => updateFlag(item.id, 'full', e.target.checked)} disabled={!item.isEditing} className="w-5 h-5 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 focus:ring-2 cursor-pointer" />
-                                            </td>
-                                            <td className="p-4 text-center">
-                                                <input type="checkbox" checked={item.patrocinados} onChange={(e) => updateFlag(item.id, 'patrocinados', e.target.checked)} disabled={!item.isEditing} className="w-5 h-5 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500 focus:ring-2 cursor-pointer" />
-                                            </td>
-                                            <td className="p-4 text-center">
-                                                <input type="checkbox" checked={item.clipe} onChange={(e) => updateFlag(item.id, 'clipe', e.target.checked)} disabled={!item.isEditing} className="w-5 h-5 text-pink-600 bg-gray-100 border-gray-300 rounded focus:ring-pink-500 focus:ring-2 cursor-pointer" />
-                                            </td>
-                                            <td className="p-4 text-center">
-                                                <input type="checkbox" checked={item.revisado} onChange={(e) => updateFlag(item.id, 'revisado', e.target.checked)} disabled={!item.isEditing} className="w-5 h-5 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500 focus:ring-2 cursor-pointer" />
-                                            </td>
-                                            <td className="p-4 text-center">
-                                                <div className="flex gap-2 justify-center">
-                                                    <button
-                                                        onClick={() => toggleEdit(item.id)}
-                                                        className={`p-2 rounded-full transition-all duration-200 hover:scale-110 cursor-pointer shadow-md ${item.isEditing ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-blue-500 hover:bg-blue-600 text-white'}`}
-                                                        title={item.isEditing ? 'Cancelar edição (✕)' : 'Editar linha (🖉)'}
-                                                    >
-                                                        {item.isEditing ? '✕' : '🖉'}
-                                                    </button>
-                                                    <button
-                                                        onClick={() => deleteItem(item.id)}
-                                                        className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-full hover:scale-110 transition-all duration-200 cursor-pointer shadow-md"
-                                                        title="Excluir item"
-                                                    >
-                                                        🗑️
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
+            {/* Importação */}
+            {mostrarImport && (
+              <div className="px-4 py-3 bg-[#f5f5f0] border-b border-gray-300 shrink-0 space-y-2">
+                <p className="text-[11px] text-gray-600">Cole o texto bruto. Códigos de <strong>exatamente 10 dígitos</strong> serão extraídos; o texto após cada código vira o campo Modelo.</p>
+                <textarea
+                  value={rawImport}
+                  onChange={e => setRawImport(e.target.value)}
+                  rows={3}
+                  placeholder="Ex: 1714432252 TRITON   5498152508 PAJERO FULL"
+                  className="w-full px-2 py-1.5 border border-gray-300 text-[11px] font-mono focus:outline-none focus:ring-1 focus:ring-blue-400 resize-none"
+                />
+                <button onClick={importarRaw} className="text-[11px] px-4 py-1.5 font-semibold text-white transition-colors" style={{ backgroundColor: "#22252A" }}>Processar e importar</button>
+              </div>
             )}
-        </>
-    );
+
+            {/* Feedback */}
+            {mensagem && (
+              <div className={`px-4 py-2 text-[11px] shrink-0 ${mensagem.tipo === "ok" ? "bg-green-50 text-green-700 border-b border-green-200" : "bg-red-50 text-red-700 border-b border-red-200"}`}>
+                {mensagem.texto}
+              </div>
+            )}
+
+            {/* Tabela */}
+            <div className="overflow-auto flex-1">
+              <table className="w-full border-collapse text-[11px]">
+                <thead>
+                  <tr className="bg-[#dcdcdc] text-gray-700">
+                    <th className="text-left px-3 py-2 border-b border-gray-300 font-semibold w-36">MLB</th>
+                    <th className="text-left px-3 py-2 border-b border-gray-300 font-semibold w-36">Modelo</th>
+                    {FLAGS.map(f => (
+                      <th key={f.key} className="text-center px-2 py-2 border-b border-gray-300 font-semibold w-20">{f.label}</th>
+                    ))}
+                    <th className="text-center px-2 py-2 border-b border-gray-300 font-semibold w-16">Ação</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {lista.length === 0 && (
+                    <tr><td colSpan={FLAGS.length + 3} className="text-center py-8 text-gray-400 text-[11px]">Nenhum MLB cadastrado. Use "+ Adicionar linha" ou importe um texto bruto.</td></tr>
+                  )}
+                  {lista.map((entry, index) => {
+                    const invalido = entry.valor !== "" && !/^\d{10}$/.test(entry.valor);
+                    return (
+                      <tr key={index} className="border-b border-gray-200 hover:bg-gray-50">
+                        <td className="px-2 py-1">
+                          <input
+                            type="text" value={entry.valor}
+                            onChange={e => atualizar(index, "valor", e.target.value)}
+                            maxLength={10}
+                            className={`w-full px-2 py-1 border text-[11px] font-mono focus:outline-none focus:ring-1 focus:ring-blue-400 ${invalido ? "border-red-400 bg-red-50" : "border-gray-300"}`}
+                            placeholder="10 dígitos"
+                          />
+                        </td>
+                        <td className="px-2 py-1">
+                          <input
+                            type="text" value={entry.modelo}
+                            onChange={e => atualizar(index, "modelo", e.target.value.toUpperCase())}
+                            className="w-full px-2 py-1 border border-gray-300 text-[11px] focus:outline-none focus:ring-1 focus:ring-blue-400"
+                            placeholder="Ex: TRITON"
+                          />
+                        </td>
+                        {FLAGS.map(f => (
+                          <td key={f.key} className="px-2 py-1 text-center">
+                            <input type="checkbox" checked={entry[f.key] as boolean} onChange={e => atualizar(index, f.key, e.target.checked)} className="w-3.5 h-3.5 cursor-pointer" />
+                          </td>
+                        ))}
+                        <td className="px-2 py-1 text-center">
+                          <button onClick={() => remover(index)} className="text-red-500 hover:text-red-700 transition-colors text-[11px]" title="Remover">✕</button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Footer */}
+            <div className="flex items-center justify-end gap-2 px-4 py-3 bg-[#ececec] border-t border-gray-300 shrink-0">
+              <button onClick={() => setIsModalOpen(false)} className="text-[11px] px-4 py-1.5 border border-gray-400 hover:bg-gray-200 transition-colors">Fechar</button>
+              <button onClick={handleSalvar} disabled={salvando} className="text-[11px] px-4 py-1.5 font-semibold text-white transition-colors disabled:opacity-50" style={{ backgroundColor: "#22252A" }}>
+                {salvando ? "Salvando..." : "Salvar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
 }

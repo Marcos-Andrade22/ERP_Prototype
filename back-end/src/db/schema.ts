@@ -64,12 +64,21 @@ export const kits = sqliteTable("kits", {
   criadoEm: text("criado_em"),
 });
 
-export const itensMLB = sqliteTable("itens_mlb", {
+/**
+ * Tabela unificada de entradas MLB.
+ * Uma linha pertence EXCLUSIVAMENTE a um item OU a um kit — nunca aos dois.
+ *   item_id  preenchido + kit_id  NULL  → MLB de item
+ *   item_id  NULL        + kit_id preenchido → MLB de kit
+ *
+ * O campo `modelo` é usado principalmente em kits (ex: "TRITON", "PAJERO").
+ * Para itens simples fica vazio.
+ */
+export const mlbEntries = sqliteTable("mlb_entries", {
   id: integer("id").primaryKey({ autoIncrement: true }),
-  itemId: integer("item_id")
-    .notNull()
-    .references(() => itens.id, { onDelete: "cascade" }),
+  itemId: integer("item_id").references(() => itens.id, { onDelete: "cascade" }),
+  kitId: text("kit_id").references(() => kits.id, { onDelete: "cascade" }),
   valor: text("valor").notNull(),
+  modelo: text("modelo").default(""),
   ean: integer("ean", { mode: "boolean" }).default(false),
   cubagem: integer("cubagem", { mode: "boolean" }).default(false),
   otimizado: integer("otimizado", { mode: "boolean" }).default(false),
@@ -81,7 +90,6 @@ export const itensMLB = sqliteTable("itens_mlb", {
   atualizadoEm: text("atualizado_em"),
 });
 
-// ─── Estilos de campo ─────────────────────────────────────────
 export const campoEstilos = sqliteTable("campo_estilos", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   itemId: integer("item_id")

@@ -1,16 +1,22 @@
 import type { EstoqueItem } from "../../estoque/model/EstoqueItem";
 import type { Kit } from "../model/Kit";
 
+const str = (v: unknown): string => (v == null ? "" : String(v));
+
+const encontrarItem = (itens: EstoqueItem[], identificador: string): EstoqueItem | undefined =>
+  itens.find(i => str(i.item) === identificador || str(i.codigoItem) === identificador);
+
+// Desconta o estoque de cada item que compõe o kit
 export const baixarKit = (
   kit: Kit,
   quantidade: number,
   itens: EstoqueItem[],
 ): EstoqueItem[] => {
   return itens.map((item) => {
-    const linha = kit.composicao.find((c) => c.codigoItem === item.codigoItem);
-
+    const linha = kit.composicao.find(
+      (c) => str(c.codigoItem) === str(item.item) || str(c.codigoItem) === str(item.codigoItem)
+    );
     if (!linha) return item;
-
     return {
       ...item,
       quantidade: Math.max(0, item.quantidade - linha.quantidade * quantidade),
@@ -18,17 +24,15 @@ export const baixarKit = (
   });
 };
 
+// Verifica se há estoque suficiente para montar X kits
 export const validarEstoqueKit = (
   kit: Kit,
   quantidade: number,
   itens: EstoqueItem[],
 ): boolean => {
   for (const linha of kit.composicao) {
-    const item = itens.find((i) => i.referencia === linha.codigoItem);
-    if (!item || item.quantidade < linha.quantidade * quantidade) {
-      ("");
-      return false;
-    }
+    const item = encontrarItem(itens, linha.codigoItem);
+    if (!item || item.quantidade < linha.quantidade * quantidade) return false;
   }
   return true;
 };

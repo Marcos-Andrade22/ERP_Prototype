@@ -67,7 +67,7 @@ const FILTROS_EQ: Array<[string, Column]> = [
 router.get("/", async (req: Request, res: Response) => {
   try {
     const query = req.query as Record<string, string>;
-    const { page = "1", limit = "20" } = query;
+    const { page = "1", limit = "20", all } = query;
 
     const filters: SQL[] = [];
 
@@ -83,6 +83,23 @@ router.get("/", async (req: Request, res: Response) => {
       filters.push(eq(itens.pedir, query.pedir === "true"));
     }
 
+    const whereClause = filters.length > 0 ? and(...filters) : undefined;
+
+    // Quando all=true, retorna todos os registros sem paginação (uso interno: dropdowns)
+    if (all === "true") {
+      const results = await db
+        .select()
+        .from(itens)
+        .where(whereClause);
+
+      return res.json({
+        data: results.map(mapearParaFrontend),
+        page: 1,
+        limit: results.length,
+        total: results.length,
+      });
+    }
+
     const pageNum = Math.max(1, parseInt(page));
     const limitNum = Math.min(100, Math.max(1, parseInt(limit)));
     const offset = (pageNum - 1) * limitNum;
@@ -90,7 +107,7 @@ router.get("/", async (req: Request, res: Response) => {
     const results = await db
       .select()
       .from(itens)
-      .where(filters.length > 0 ? and(...filters) : undefined)
+      .where(whereClause)
       .limit(limitNum)
       .offset(offset);
 
@@ -217,7 +234,6 @@ router.post(
         const num = (key: string) =>
           parseFloat(col(key).replace(",", ".")) || 0;
         const int = (key: string) => parseInt(col(key)) || 0;
-        // ← única mudança: extrai número de strings como "Disponível: 6 pç"
         const qty = (key: string) => {
           const m = col(key).match(/(\d+)/);
           return m ? parseInt(m[1]) : 0;
@@ -256,7 +272,7 @@ router.post(
           valorUnitario: num("col_48"),
           valorComercialVenda: num("col_50"),
           substituicaoTributariaValor: num("col_52"),
-          quantidade: qty("col_65"), // ← corrigido
+          quantidade: qty("col_65"),
           flags: col("col_73"),
           medidaInterna: num("col_76"),
           medidaExterna: num("col_77"),

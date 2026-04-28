@@ -1,12 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
-import { mlbService, type MlbItem } from "./mlb-service";
+import { mlbService, type MlbEntry, type MlbEntryInput } from "../../../shared/lib/mlb-service";
 
 interface UseMlbProps {
   itemId: number;
 }
 
 export function useMlb({ itemId }: UseMlbProps) {
-  const [mlbs, setMlbs] = useState<MlbItem[]>([]);
+  const [mlbs, setMlbs] = useState<MlbEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -14,9 +14,9 @@ export function useMlb({ itemId }: UseMlbProps) {
     setLoading(true);
     setError(null);
     try {
-      const dados = await mlbService.listar(itemId);
+      const dados = await mlbService.listarPorItem(itemId);
       setMlbs(dados);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError("Erro ao carregar MLBs");
       console.error(err);
     } finally {
@@ -25,14 +25,14 @@ export function useMlb({ itemId }: UseMlbProps) {
   }, [itemId]);
 
   const salvar = useCallback(
-    async (novaLista: Omit<MlbItem, "id">[]) => {
+    async (novaLista: MlbEntryInput[]) => {
       setLoading(true);
       setError(null);
       try {
-        const dados = await mlbService.salvar(itemId, novaLista);
+        const dados = await mlbService.salvarPorItem(itemId, novaLista);
         setMlbs(dados);
         return true;
-      } catch (err: any) {
+      } catch (err: unknown) {
         setError("Erro ao salvar MLBs");
         console.error(err);
         return false;
@@ -47,11 +47,5 @@ export function useMlb({ itemId }: UseMlbProps) {
     if (itemId) carregar();
   }, [carregar]);
 
-  return {
-    mlbs,
-    loading,
-    error,
-    carregar,
-    salvar,
-  };
+  return { mlbs, loading, error, carregar, salvar };
 }
