@@ -3,8 +3,7 @@ import cors from "cors";
 import * as dotenv from "dotenv";
 import itensRouter from "./routes/itens";
 import kitsRouter from "./routes/kits";
-import itensMLBRouter from "./routes/itens-mlb";
-import kitsMLBRouter from "./routes/kits-mlb";
+import mlbRouter from "./routes/mlb";
 import campoEstilosRouter from "./routes/campo-estilos";
 
 dotenv.config();
@@ -21,8 +20,7 @@ app.get("/ping", (_req, res) => {
 
 app.use("/itens", itensRouter);
 app.use("/kits", kitsRouter);
-app.use("/itens/:itemId/mlb", itensMLBRouter);
-app.use("/kits/:kitId/mlb", kitsMLBRouter);
+app.use("/mlb", mlbRouter);
 app.use("/itens/:itemId/estilos", campoEstilosRouter);
 
 app.listen(PORT, () => {

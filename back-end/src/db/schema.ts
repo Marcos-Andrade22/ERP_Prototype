@@ -64,29 +64,19 @@ export const kits = sqliteTable("kits", {
   criadoEm: text("criado_em"),
 });
 
-export const itensMLB = sqliteTable("itens_mlb", {
+/**
+ * Tabela unificada de entradas MLB.
+ * Uma linha pertence EXCLUSIVAMENTE a um item OU a um kit — nunca aos dois.
+ *   item_id  preenchido + kit_id  NULL  → MLB de item
+ *   item_id  NULL        + kit_id preenchido → MLB de kit
+ *
+ * O campo `modelo` é usado principalmente em kits (ex: "TRITON", "PAJERO").
+ * Para itens simples fica vazio.
+ */
+export const mlbEntries = sqliteTable("mlb_entries", {
   id: integer("id").primaryKey({ autoIncrement: true }),
-  itemId: integer("item_id")
-    .notNull()
-    .references(() => itens.id, { onDelete: "cascade" }),
-  valor: text("valor").notNull(),
-  ean: integer("ean", { mode: "boolean" }).default(false),
-  cubagem: integer("cubagem", { mode: "boolean" }).default(false),
-  otimizado: integer("otimizado", { mode: "boolean" }).default(false),
-  full: integer("full", { mode: "boolean" }).default(false),
-  patrocinados: integer("patrocinados", { mode: "boolean" }).default(false),
-  clipe: integer("clipe", { mode: "boolean" }).default(false),
-  revisado: integer("revisado", { mode: "boolean" }).default(false),
-  criadoEm: text("criado_em"),
-  atualizadoEm: text("atualizado_em"),
-});
-
-// MLBs vinculados a kits — mesma estrutura da itens_mlb mas referenciando kits.id (text)
-export const kitsMLB = sqliteTable("kits_mlb", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  kitId: text("kit_id")
-    .notNull()
-    .references(() => kits.id, { onDelete: "cascade" }),
+  itemId: integer("item_id").references(() => itens.id, { onDelete: "cascade" }),
+  kitId: text("kit_id").references(() => kits.id, { onDelete: "cascade" }),
   valor: text("valor").notNull(),
   modelo: text("modelo").default(""),
   ean: integer("ean", { mode: "boolean" }).default(false),
