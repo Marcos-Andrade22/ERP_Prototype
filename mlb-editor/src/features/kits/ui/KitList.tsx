@@ -15,10 +15,9 @@ interface Props {
   itens: EstoqueItem[];
   onEditar: (kit: Kit) => void;
   onDeletar: (id: string) => void;
-  onGerenciarMlb: (kit: Kit) => void;
 }
 
-export function KitList({ kits, itens, onEditar, onDeletar, onGerenciarMlb }: Props) {
+export function KitList({ kits, itens, onEditar, onDeletar }: Props) {
   if (kits.length === 0) {
     return (
       <div className="px-4 py-8 text-center text-[11px] text-gray-400">
@@ -36,7 +35,7 @@ export function KitList({ kits, itens, onEditar, onDeletar, onGerenciarMlb }: Pr
           <th className="text-left px-3 py-2 border border-gray-400 font-semibold">Itens</th>
           <th className="text-right px-3 py-2 border border-gray-400 font-semibold">Valor Total</th>
           <th className="text-center px-3 py-2 border border-gray-400 font-semibold">Qtde. Disponível</th>
-          <th className="text-center px-3 py-2 border border-gray-400 font-semibold w-32">Ações</th>
+          <th className="text-center px-3 py-2 border border-gray-400 font-semibold w-24">Ações</th>
         </tr>
       </thead>
       <tbody>
@@ -66,13 +65,6 @@ export function KitList({ kits, itens, onEditar, onDeletar, onGerenciarMlb }: Pr
               </td>
               <td className="px-3 py-1.5 border border-gray-300">
                 <div className="flex justify-center gap-1">
-                  <button
-                    onClick={() => onGerenciarMlb(kit)}
-                    className="px-2 py-0.5 border border-purple-400 text-purple-600 hover:bg-purple-50 transition-colors"
-                    title="Gerenciar MLBs do kit"
-                  >
-                    MLB
-                  </button>
                   <button
                     onClick={() => onEditar(kit)}
                     className="px-2 py-0.5 border border-blue-400 text-blue-600 hover:bg-blue-50 transition-colors"

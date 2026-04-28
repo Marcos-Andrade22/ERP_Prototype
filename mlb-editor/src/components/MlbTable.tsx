@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useMlb } from "../features/estoque/lib/useMlb";
 import type { MlbItem } from "../features/estoque/lib/mlb-service";
 
+// Campos flag — sem modelo (MlbItem do backend não possui esse campo)
 const FLAGS: { key: keyof Omit<MlbItem, "id" | "valor">; label: string }[] = [
   { key: "ean",          label: "EAN" },
   { key: "cubagem",      label: "Cubagem" },
@@ -50,7 +51,6 @@ export default function MlbTable({ itemId, nomeItem }: Props) {
   const [rawImport, setRawImport] = useState("");
   const [mostrarImport, setMostrarImport] = useState(false);
 
-  // Sincroniza lista quando o backend retorna
   useEffect(() => {
     setLista(mlbs.map(({ id: _id, ...rest }) => rest));
   }, [mlbs]);
@@ -116,7 +116,7 @@ export default function MlbTable({ itemId, nomeItem }: Props) {
         >
           <div
             className="bg-white flex flex-col"
-            style={{ width: "860px", maxWidth: "95vw", maxHeight: "90vh" }}
+            style={{ width: "900px", maxWidth: "95vw", maxHeight: "90vh" }}
           >
             {/* Header */}
             <div
