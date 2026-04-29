@@ -1,4 +1,5 @@
 // src/components/forms/inputs/NumberInput.tsx
+import { useRef, useState, useEffect } from "react";
 import { Field } from "../Field";
 import type { InputFieldProps } from "../../../types/form";
 
@@ -12,23 +13,54 @@ export function NumberInput({
     className = "",
     ...props
 }: InputFieldProps) {
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    const toDisplay = (v: unknown): string =>
+        v === "" || v == null ? "" : String(v);
+
+    const [raw, setRaw] = useState<string>(toDisplay(value));
+
+    // Sincroniza com valor externo somente quando o campo não está em foco,
+    // evitando sobrescrever o que o usuário está digitando (ex.: "0.")
+    useEffect(() => {
+        if (document.activeElement !== inputRef.current) {
+            setRaw(toDisplay(value));
+        }
+    }, [value]);
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        onChange(Number(e.target.value) || 0);
+        const v = e.target.value;
+        setRaw(v);
+
+        if (v === "" || v === "-") {
+            onChange("");
+        } else {
+            const num = Number(v);
+            onChange(isNaN(num) ? v : num);
+        }
+    };
+
+    const handleBlur = () => {
+        // Ao sair do campo, normaliza o display para o valor externo
+        setRaw(toDisplay(value));
     };
 
     return (
         <Field label={label} required={required} error={error}>
             <input
+                ref={inputRef}
                 type="number"
-                value={value}
+                value={raw}
                 onChange={handleChange}
+                onBlur={handleBlur}
                 disabled={disabled}
-                className={`h-6 w-full px-2 py-1 border rounded-sm text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-colors ${error
-                    ? "border-red-300 bg-red-50"
-                    : disabled
+                className={`h-6 w-full px-2 py-1 border rounded-sm text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                    error
+                        ? "border-red-300 bg-red-50"
+                        : disabled
                         ? "bg-gray-100 cursor-not-allowed"
                         : "border-gray-300 hover:border-gray-400"
-                    } ${className}`}
+                } ${className}`}
                 {...props}
             />
         </Field>
