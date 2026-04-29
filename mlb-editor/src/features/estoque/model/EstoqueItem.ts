@@ -1,6 +1,6 @@
 export interface EstoqueItem {
   // Identificação
-  id?: number; // ← adiciona essa linha no topo
+  id?: number;
   codigoItem: string;
   item: string;
   unid: string;
@@ -42,6 +42,8 @@ export interface EstoqueItem {
   lucroTipo: "percent" | "fixed";
   lucroValor: number;
   acrescimoPercent: number;
+  frete: string;
+  taxaClienteOficina: number;
 
   // Texto
   historico: string;
