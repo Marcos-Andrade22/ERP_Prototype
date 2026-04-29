@@ -1,4 +1,3 @@
-import { TextInput } from "../../../../components/forms/inputs/TextInput";
 import { NumberInput } from "../../../../components/forms/inputs/NumberInput";
 import type { EstoqueItem } from "../../model/EstoqueItem";
 
@@ -7,30 +6,63 @@ type Props = {
     handleChange: (key: keyof EstoqueItem) => (value: any) => void;
 };
 
-// Taxas fixas conforme calculadora
+// ── TAXAS FIXAS DOS CANAIS DE VENDA ──────────────────────────────────────────
 const TAXAS = {
     mlClassico:   0.138,
     mlPremium10x: 0.205,
     site:         0.113,
 };
 
-function calcular(item: EstoqueItem) {
-    const precoCusto         = parseFloat(String(item.valorUnitarioFixo))   || 0;
-    const percentualVenda    = (parseFloat(String(item.lucroValor))          || 0) / 100;
-    const frete              = parseFloat(String(item.frete))               || 0;
-    const taxaClienteOficina = (parseFloat(String(item.taxaClienteOficina)) || 0) / 100;
+// ── CÁLCULO DO VALOR COMERCIAL ────────────────────────────────────────────────
+// base = Valor Unitário
+// com_lucro  = base × (1 + Lucro%)  OU  base + LucroR$
+// com_acrescimo = com_lucro × (1 + Acréscimo%)
+// ST = base × (ST%)  OU  ST R$ fixo   ← sempre sobre o valor unitário bruto
+// Valor Comercial (Venda) = com_acrescimo + ST   [read-only]
+function calcularValorComercial(item: EstoqueItem): number {
+    const base      = parseFloat(String(item.valorUnitario))             || 0;
+    const lucro     = parseFloat(String(item.lucroValor))                || 0;
+    const acrescimo = (parseFloat(String(item.acrescimoPercent))         || 0) / 100;
+    const stVal     = parseFloat(String(item.substituicaoTributariaValor)) || 0;
 
-    const precoBase = precoCusto * (1 + percentualVenda);
+    const comLucro =
+        item.lucroTipo === "percent"
+            ? base * (1 + lucro / 100)
+            : base + lucro;
+
+    const comAcrescimo = comLucro * (1 + acrescimo);
+
+    const st =
+        item.substituicaoTributariaTipo === "percent"
+            ? base * (stVal / 100)
+            : stVal;
+
+    return comAcrescimo + st;
+}
+
+// ── CÁLCULO DOS PREÇOS POR CANAL (calculadora) ────────────────────────────────
+// Usa o preço após lucro (com_lucro) como base dos canais
+function calcularCanais(item: EstoqueItem) {
+    const base   = parseFloat(String(item.valorUnitario)) || 0;
+    const lucro  = parseFloat(String(item.lucroValor))    || 0;
+    const frete  = parseFloat(String(item.frete))         || 0;
+    const taxaCO = (parseFloat(String(item.taxaClienteOficina)) || 0) / 100;
+
+    const comLucro =
+        item.lucroTipo === "percent"
+            ? base * (1 + lucro / 100)
+            : base + lucro;
 
     return {
-        precoBase,
-        mlClassico:   precoBase * (1 + TAXAS.mlClassico)   + frete,
-        mlPremium10x: precoBase * (1 + TAXAS.mlPremium10x) + frete,
-        site:         precoBase * (1 + TAXAS.site),
-        taxaCliente:  precoBase * (1 + taxaClienteOficina),
+        precoBase:    comLucro,
+        mlClassico:   comLucro * (1 + TAXAS.mlClassico)   + frete,
+        mlPremium10x: comLucro * (1 + TAXAS.mlPremium10x) + frete,
+        site:         comLucro * (1 + TAXAS.site),
+        taxaCliente:  comLucro * (1 + taxaCO),
     };
 }
 
+// ── HELPERS ──────────────────────────────────────────────────────────────────
 function fmt(value: number): string {
     return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
@@ -50,24 +82,25 @@ function ResultRow({ label, value, colorClass }: ResultRowProps) {
     );
 }
 
+// ── COMPONENTE ───────────────────────────────────────────────────────────────
 export function TabValores({ item, handleChange }: Props) {
-    const resultados = calcular(item);
+    const valorComercial = calcularValorComercial(item);
+    const canais         = calcularCanais(item);
 
     return (
         <div className="p-3 flex flex-col gap-4">
 
-            {/* ── SEÇÃO 1: VALORES COMERCIAIS (interface original) ── */}
+            {/* ── SEÇÃO 1: VALORES COMERCIAIS ── */}
             <div className="grid grid-cols-2 gap-3">
-                <TextInput
-                    label="Valor Unitário Fixo:"
-                    value={item.valorUnitarioFixo}
-                    onChange={handleChange("valorUnitarioFixo")}
-                />
-                <TextInput
-                    label="Valor Unitário:"
-                    value={item.valorUnitario}
-                    onChange={handleChange("valorUnitario")}
-                />
+
+                {/* Valor Unitário — campo único */}
+                <div className="col-span-2">
+                    <NumberInput
+                        label="Valor Unitário:"
+                        value={item.valorUnitario}
+                        onChange={handleChange("valorUnitario")}
+                    />
+                </div>
 
                 {/* Lucro */}
                 <div className="col-span-2">
@@ -93,7 +126,7 @@ export function TabValores({ item, handleChange }: Props) {
                                 onChange={() => handleChange("lucroTipo")("fixed")}
                                 className="h-3 w-3"
                             />
-                            Valor
+                            R$
                         </label>
                         <NumberInput
                             label=""
@@ -104,16 +137,20 @@ export function TabValores({ item, handleChange }: Props) {
                     </div>
                 </div>
 
+                {/* Acréscimo — sempre % */}
                 <NumberInput
-                    label="Acréscimo %:"
+                    label="Acréscimo (%):"
                     value={item.acrescimoPercent}
                     onChange={handleChange("acrescimoPercent")}
                 />
-                <TextInput
-                    label="Valor Comercial Venda:"
-                    value={item.valorComercialVenda}
-                    onChange={handleChange("valorComercialVenda")}
-                />
+
+                {/* Valor Comercial (Venda) — read-only */}
+                <div>
+                    <span className="text-[11px] font-medium text-gray-700">Valor Comercial (Venda):</span>
+                    <div className="mt-1 px-2 py-1 bg-gray-100 border border-gray-200 rounded text-[11px] font-semibold text-gray-800 tabular-nums select-none">
+                        {fmt(valorComercial)}
+                    </div>
+                </div>
 
                 {/* Substituição Tributária */}
                 <div className="col-span-2">
@@ -139,9 +176,9 @@ export function TabValores({ item, handleChange }: Props) {
                                 onChange={() => handleChange("substituicaoTributariaTipo")("valor")}
                                 className="h-3 w-3"
                             />
-                            Valor
+                            R$
                         </label>
-                        <TextInput
+                        <NumberInput
                             label=""
                             value={item.substituicaoTributariaValor}
                             onChange={handleChange("substituicaoTributariaValor")}
@@ -149,6 +186,7 @@ export function TabValores({ item, handleChange }: Props) {
                         />
                     </div>
                 </div>
+
             </div>
 
             {/* ── DIVISOR ── */}
@@ -160,7 +198,6 @@ export function TabValores({ item, handleChange }: Props) {
                     Calculadora de Preços
                 </p>
 
-                {/* Inputs extras da calculadora */}
                 <div className="grid grid-cols-2 gap-3 mb-3">
                     <NumberInput
                         label="Frete (R$):"
@@ -174,36 +211,34 @@ export function TabValores({ item, handleChange }: Props) {
                     />
                 </div>
 
-                {/* Preço Base */}
                 <ResultRow
-                    label="Preço Base"
-                    value={resultados.precoBase}
+                    label="Preço Base (com lucro)"
+                    value={canais.precoBase}
                     colorClass="bg-gray-100 text-gray-800"
                 />
 
-                {/* Preços por canal */}
                 <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mt-3 mb-1">
                     Preços por Canal
                 </p>
                 <div className="flex flex-col gap-1">
                     <ResultRow
                         label="ML Clássico (13,8%)"
-                        value={resultados.mlClassico}
+                        value={canais.mlClassico}
                         colorClass="bg-pink-100 text-pink-800"
                     />
                     <ResultRow
                         label="ML Premium 10x (20,5%)"
-                        value={resultados.mlPremium10x}
+                        value={canais.mlPremium10x}
                         colorClass="bg-blue-100 text-blue-800"
                     />
                     <ResultRow
                         label="Site (11,3%)"
-                        value={resultados.site}
+                        value={canais.site}
                         colorClass="bg-gray-200 text-gray-700"
                     />
                     <ResultRow
                         label="Taxa Cliente / Oficina"
-                        value={resultados.taxaCliente}
+                        value={canais.taxaCliente}
                         colorClass="bg-red-100 text-red-800"
                     />
                 </div>
