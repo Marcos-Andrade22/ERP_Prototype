@@ -8,31 +8,25 @@ type Props = {
 
 // Taxas fixas conforme calculadora
 const TAXAS = {
-    shopsClassico:   0.022,
-    shopsPremium3x:  0.088,
-    shopsPremium12x: 0.138,
-    mlClassico:      0.138,
-    mlPremium10x:    0.205,
-    site:            0.113,
+    mlClassico:  0.138,
+    mlPremium10x: 0.205,
+    site:         0.113,
 };
 
 function calcular(item: EstoqueItem) {
-    const precoCusto         = parseFloat(String(item.valorUnitarioFixo))   || 0;
-    const percentualVenda    = (parseFloat(String(item.lucroValor))          || 0) / 100;
-    const frete              = parseFloat(String(item.frete))               || 0;
-    const taxaClienteOficina = (parseFloat(String(item.taxaClienteOficina)) || 0) / 100;
+    const precoCusto         = parseFloat(String(item.valorUnitarioFixo))    || 0;
+    const percentualVenda    = (parseFloat(String(item.lucroValor))           || 0) / 100;
+    const frete              = parseFloat(String(item.frete))                || 0;
+    const taxaClienteOficina = (parseFloat(String(item.taxaClienteOficina))  || 0) / 100;
 
     const precoBase = precoCusto * (1 + percentualVenda);
 
     return {
         precoBase,
-        shopsClassico:   precoBase * (1 + TAXAS.shopsClassico)   + frete,
-        shopsPremium3x:  precoBase * (1 + TAXAS.shopsPremium3x)  + frete,
-        shopsPremium12x: precoBase * (1 + TAXAS.shopsPremium12x) + frete,
-        mlClassico:      precoBase * (1 + TAXAS.mlClassico)      + frete,
-        mlPremium10x:    precoBase * (1 + TAXAS.mlPremium10x)    + frete,
-        site:            precoBase * (1 + TAXAS.site),
-        taxaCliente:     precoBase * (1 + taxaClienteOficina),
+        mlClassico:  precoBase * (1 + TAXAS.mlClassico)   + frete,
+        mlPremium10x: precoBase * (1 + TAXAS.mlPremium10x) + frete,
+        site:         precoBase * (1 + TAXAS.site),
+        taxaCliente:  precoBase * (1 + taxaClienteOficina),
     };
 }
 
@@ -108,21 +102,6 @@ export function TabValores({ item, handleChange }: Props) {
                     Preços por Canal
                 </p>
                 <div className="flex flex-col gap-1">
-                    <ResultRow
-                        label="Shops Clássico (2,2%)"
-                        value={resultados.shopsClassico}
-                        colorClass="bg-yellow-100 text-yellow-800"
-                    />
-                    <ResultRow
-                        label="Shops Premium 3x (8,8%)"
-                        value={resultados.shopsPremium3x}
-                        colorClass="bg-green-100 text-green-800"
-                    />
-                    <ResultRow
-                        label="Shops Premium 12x (13,8%)"
-                        value={resultados.shopsPremium12x}
-                        colorClass="bg-orange-100 text-orange-800"
-                    />
                     <ResultRow
                         label="ML Clássico (13,8%)"
                         value={resultados.mlClassico}
