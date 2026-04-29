@@ -13,16 +13,21 @@ const TAXAS = {
     site:         0.113,
 };
 
+// "percent" é o default: trata undefined/vazio como percent
+function stTipo(item: EstoqueItem): "percent" | "valor" {
+    return item.substituicaoTributariaTipo === "valor" ? "valor" : "percent";
+}
+
 // ── CÁLCULO DO VALOR COMERCIAL ────────────────────────────────────────────────
 // base = Valor Unitário
-// com_lucro  = base × (1 + Lucro%)  OU  base + LucroR$
+// com_lucro     = base × (1 + Lucro%)  OU  base + Lucro R$
 // com_acrescimo = com_lucro × (1 + Acréscimo%)
-// ST = base × (ST%)  OU  ST R$ fixo   ← sempre sobre o valor unitário bruto
+// ST            = base × (ST%)  OU  ST R$ fixo   ← sempre sobre o valor unitário bruto
 // Valor Comercial (Venda) = com_acrescimo + ST   [read-only]
 function calcularValorComercial(item: EstoqueItem): number {
-    const base      = parseFloat(String(item.valorUnitario))             || 0;
-    const lucro     = parseFloat(String(item.lucroValor))                || 0;
-    const acrescimo = (parseFloat(String(item.acrescimoPercent))         || 0) / 100;
+    const base      = parseFloat(String(item.valorUnitario))               || 0;
+    const lucro     = parseFloat(String(item.lucroValor))                  || 0;
+    const acrescimo = (parseFloat(String(item.acrescimoPercent))           || 0) / 100;
     const stVal     = parseFloat(String(item.substituicaoTributariaValor)) || 0;
 
     const comLucro =
@@ -33,7 +38,7 @@ function calcularValorComercial(item: EstoqueItem): number {
     const comAcrescimo = comLucro * (1 + acrescimo);
 
     const st =
-        item.substituicaoTributariaTipo === "percent"
+        stTipo(item) === "percent"
             ? base * (stVal / 100)
             : stVal;
 
@@ -41,12 +46,11 @@ function calcularValorComercial(item: EstoqueItem): number {
 }
 
 // ── CÁLCULO DOS PREÇOS POR CANAL (calculadora) ────────────────────────────────
-// Usa o preço após lucro (com_lucro) como base dos canais
 function calcularCanais(item: EstoqueItem) {
-    const base   = parseFloat(String(item.valorUnitario)) || 0;
-    const lucro  = parseFloat(String(item.lucroValor))    || 0;
-    const frete  = parseFloat(String(item.frete))         || 0;
-    const taxaCO = (parseFloat(String(item.taxaClienteOficina)) || 0) / 100;
+    const base   = parseFloat(String(item.valorUnitario))          || 0;
+    const lucro  = parseFloat(String(item.lucroValor))             || 0;
+    const frete  = parseFloat(String(item.frete))                  || 0;
+    const taxaCO = (parseFloat(String(item.taxaClienteOficina))    || 0) / 100;
 
     const comLucro =
         item.lucroTipo === "percent"
@@ -86,6 +90,7 @@ function ResultRow({ label, value, colorClass }: ResultRowProps) {
 export function TabValores({ item, handleChange }: Props) {
     const valorComercial = calcularValorComercial(item);
     const canais         = calcularCanais(item);
+    const stAtual        = stTipo(item);
 
     return (
         <div className="p-3 flex flex-col gap-4">
@@ -161,7 +166,7 @@ export function TabValores({ item, handleChange }: Props) {
                                 type="radio"
                                 name="stTipo"
                                 value="percent"
-                                checked={item.substituicaoTributariaTipo === "percent"}
+                                checked={stAtual === "percent"}
                                 onChange={() => handleChange("substituicaoTributariaTipo")("percent")}
                                 className="h-3 w-3"
                             />
@@ -172,7 +177,7 @@ export function TabValores({ item, handleChange }: Props) {
                                 type="radio"
                                 name="stTipo"
                                 value="valor"
-                                checked={item.substituicaoTributariaTipo === "valor"}
+                                checked={stAtual === "valor"}
                                 onChange={() => handleChange("substituicaoTributariaTipo")("valor")}
                                 className="h-3 w-3"
                             />
