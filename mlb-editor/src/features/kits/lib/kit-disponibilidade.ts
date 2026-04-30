@@ -1,11 +1,6 @@
-import type { EstoqueItem } from "../../estoque/model/EstoqueItem";
 import type { Kit } from "../model/Kit";
-
-const str = (v: unknown): string => (v == null ? "" : String(v));
-
-// Busca o item do estoque pelo campo "item" ou codigoItem
-const encontrarItem = (itens: EstoqueItem[], identificador: string): EstoqueItem | undefined =>
-  itens.find(i => str(i.item) === identificador || str(i.codigoItem) === identificador);
+import type { EstoqueItem } from "../../estoque/model/EstoqueItem";
+import { encontrarItem } from "./kit-utils";
 
 /**
  * Calcula quantos kits é possível montar com o estoque atual.

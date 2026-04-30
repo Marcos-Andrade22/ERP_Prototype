@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import type { KitComposicao } from "../model/Kit";
 import type { EstoqueItem } from "../../estoque/model/EstoqueItem";
 import { calcularValorComercial } from "../../estoque/lib/estoque-calc";
+import { str } from "../lib/kit-utils";
 
 interface Props {
   composicao: KitComposicao[];
@@ -15,9 +16,6 @@ interface DropdownBuscaProps {
   onSelecionar: (item: EstoqueItem) => void;
   onChangeTexto: (texto: string) => void;
 }
-
-const str = (v: unknown): string =>
-  v == null ? "" : String(v).toLowerCase();
 
 function DropdownBusca({ valor, itens, onSelecionar, onChangeTexto }: DropdownBuscaProps) {
   const [aberto, setAberto] = useState(false);
@@ -47,13 +45,13 @@ function DropdownBusca({ valor, itens, onSelecionar, onChangeTexto }: DropdownBu
             str(it.item),
             str(it.referencia),
             str(it.marca),
-          ].join(" ");
+          ].join(" ").toLowerCase();
           return termos.every(termo => haystack.includes(termo));
         })
         .sort((a, b) => {
           const q = query.trim().toLowerCase();
-          const aComeca = str(a.item).startsWith(q) ? 0 : 1;
-          const bComeca = str(b.item).startsWith(q) ? 0 : 1;
+          const aComeca = str(a.item).toLowerCase().startsWith(q) ? 0 : 1;
+          const bComeca = str(b.item).toLowerCase().startsWith(q) ? 0 : 1;
           return aComeca - bComeca;
         })
         .slice(0, 20);
@@ -169,7 +167,6 @@ export function KitComposicaoTable({ composicao, itens, onChange }: Props) {
             const itemEncontrado = itens.find(
               it => it.item === linha.codigoItem || it.codigoItem === linha.codigoItem
             );
-            // Valor Unit. reflete o Valor Comercial calculado do item
             const valorUnit = itemEncontrado ? calcularValorComercial(itemEncontrado) : 0;
             const subtotal  = valorUnit * linha.quantidade;
             return (
