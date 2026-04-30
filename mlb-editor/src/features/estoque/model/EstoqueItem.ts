@@ -43,6 +43,8 @@ export interface EstoqueItem {
   lucroTipo: "percent" | "fixed";
   lucroValor: number;
   acrescimoPercent: number;
+  frete: string;
+  taxaClienteOficina: number;
 
   // Texto
   historico: string;
