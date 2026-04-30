@@ -1,5 +1,6 @@
 import { NumberInput } from "../../../../components/forms/inputs/NumberInput";
 import type { EstoqueItem } from "../../model/EstoqueItem";
+import { calcularValorComercial } from "../../lib/estoque-calc";
 
 type Props = {
     item: EstoqueItem;
@@ -16,33 +17,6 @@ const TAXAS = {
 // "percent" é o default: trata undefined/vazio como percent
 function stTipo(item: EstoqueItem): "percent" | "valor" {
     return item.substituicaoTributariaTipo === "valor" ? "valor" : "percent";
-}
-
-// ── CÁLCULO DO VALOR COMERCIAL ────────────────────────────────────────────────
-// base = Valor Unitário
-// com_lucro     = base × (1 + Lucro%)  OU  base + Lucro R$
-// com_acrescimo = com_lucro × (1 + Acréscimo%)
-// ST            = base × (ST%)  OU  ST R$ fixo   ← sempre sobre o valor unitário bruto
-// Valor Comercial (Venda) = com_acrescimo + ST   [read-only]
-function calcularValorComercial(item: EstoqueItem): number {
-    const base      = parseFloat(String(item.valorUnitario))               || 0;
-    const lucro     = parseFloat(String(item.lucroValor))                  || 0;
-    const acrescimo = (parseFloat(String(item.acrescimoPercent))           || 0) / 100;
-    const stVal     = parseFloat(String(item.substituicaoTributariaValor)) || 0;
-
-    const comLucro =
-        item.lucroTipo === "percent"
-            ? base * (1 + lucro / 100)
-            : base + lucro;
-
-    const comAcrescimo = comLucro * (1 + acrescimo);
-
-    const st =
-        stTipo(item) === "percent"
-            ? base * (stVal / 100)
-            : stVal;
-
-    return comAcrescimo + st;
 }
 
 // ── CÁLCULO DOS PREÇOS POR CANAL ──────────────────────────────────────────────

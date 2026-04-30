@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import type { KitComposicao } from "../model/Kit";
 import type { EstoqueItem } from "../../estoque/model/EstoqueItem";
+import { calcularValorComercial } from "../../estoque/lib/estoque-calc";
 
 interface Props {
   composicao: KitComposicao[];
@@ -17,33 +18,6 @@ interface DropdownBuscaProps {
 
 const str = (v: unknown): string =>
   v == null ? "" : String(v).toLowerCase();
-
-// ── CÁLCULO DO VALOR COMERCIAL (espelho de TabValores.tsx) ────────────────────
-// base = Valor Unitário
-// com_lucro     = base × (1 + Lucro%)  OU  base + Lucro R$
-// com_acrescimo = com_lucro × (1 + Acréscimo%)
-// ST            = base × (ST%)  OU  ST R$ fixo
-// Valor Comercial = com_acrescimo + ST
-function calcularValorComercial(item: EstoqueItem): number {
-  const base      = parseFloat(String(item.valorUnitario))               || 0;
-  const lucro     = parseFloat(String(item.lucroValor))                  || 0;
-  const acrescimo = (parseFloat(String(item.acrescimoPercent))           || 0) / 100;
-  const stVal     = parseFloat(String(item.substituicaoTributariaValor)) || 0;
-
-  const comLucro =
-    item.lucroTipo === "percent"
-      ? base * (1 + lucro / 100)
-      : base + lucro;
-
-  const comAcrescimo = comLucro * (1 + acrescimo);
-
-  const st =
-    item.substituicaoTributariaTipo === "valor"
-      ? stVal
-      : base * (stVal / 100);
-
-  return comAcrescimo + st;
-}
 
 function DropdownBusca({ valor, itens, onSelecionar, onChangeTexto }: DropdownBuscaProps) {
   const [aberto, setAberto] = useState(false);
