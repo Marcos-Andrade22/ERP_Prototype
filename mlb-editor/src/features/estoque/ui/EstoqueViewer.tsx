@@ -21,7 +21,7 @@ const emptyItem: EstoqueItem = {
     situacaoML: '', dataAnuncioML: '', valorML: '',
     situacaoSite: '', dataAnuncioSite: '', valorSite: '',
     pedir: false, promocao: false, revisado: '', alocarParaSite: '',
-    reporeSomar: '', imagem: '', rawIndex: 0,
+    reporeSomar: '', imagem: '', rawIndex: 0, substituicaoTributariaTipo: 'percent', frete: '', taxaClienteOficina: 0
 };
 
 const mergeComDefaults = (item: EstoqueItem): EstoqueItem => ({
