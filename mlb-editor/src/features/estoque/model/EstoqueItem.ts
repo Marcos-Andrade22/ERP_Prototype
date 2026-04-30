@@ -38,6 +38,7 @@ export interface EstoqueItem {
   valorUnitarioFixo: string;
   valorUnitario: string;
   valorComercialVenda: string;
+  substituicaoTributariaTipo: "percent" | "valor";
   substituicaoTributariaValor: string;
   lucroTipo: "percent" | "fixed";
   lucroValor: number;

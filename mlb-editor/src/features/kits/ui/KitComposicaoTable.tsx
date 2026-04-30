@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import type { KitComposicao } from "../model/Kit";
 import type { EstoqueItem } from "../../estoque/model/EstoqueItem";
+import { calcularValorComercial } from "../../estoque/lib/estoque-calc";
+import { str } from "../lib/kit-utils";
 
 interface Props {
   composicao: KitComposicao[];
@@ -14,9 +16,6 @@ interface DropdownBuscaProps {
   onSelecionar: (item: EstoqueItem) => void;
   onChangeTexto: (texto: string) => void;
 }
-
-const str = (v: unknown): string =>
-  v == null ? "" : String(v).toLowerCase();
 
 function DropdownBusca({ valor, itens, onSelecionar, onChangeTexto }: DropdownBuscaProps) {
   const [aberto, setAberto] = useState(false);
@@ -46,14 +45,13 @@ function DropdownBusca({ valor, itens, onSelecionar, onChangeTexto }: DropdownBu
             str(it.item),
             str(it.referencia),
             str(it.marca),
-          ].join(" ");
+          ].join(" ").toLowerCase();
           return termos.every(termo => haystack.includes(termo));
         })
-        // Ordena: itens cujo campo "item" começa com a query vêm primeiro
         .sort((a, b) => {
           const q = query.trim().toLowerCase();
-          const aComeca = str(a.item).startsWith(q) ? 0 : 1;
-          const bComeca = str(b.item).startsWith(q) ? 0 : 1;
+          const aComeca = str(a.item).toLowerCase().startsWith(q) ? 0 : 1;
+          const bComeca = str(b.item).toLowerCase().startsWith(q) ? 0 : 1;
           return aComeca - bComeca;
         })
         .slice(0, 20);
@@ -65,7 +63,6 @@ function DropdownBusca({ valor, itens, onSelecionar, onChangeTexto }: DropdownBu
     setAberto(true);
   };
 
-  // Sempre exibe o campo "item" após seleção
   const handleSelecionar = (item: EstoqueItem) => {
     setQuery(item.item ?? item.codigoItem ?? "");
     onSelecionar(item);
@@ -95,7 +92,6 @@ function DropdownBusca({ valor, itens, onSelecionar, onChangeTexto }: DropdownBu
             <span className="px-2 py-1 text-right w-20">Qtde. Estoque</span>
           </div>
 
-          {/* scroll a partir de 10 itens, mostra até 20 */}
           <div className="overflow-y-auto" style={{ maxHeight: "280px" }}>
             {resultados.map((item, idx) => (
               <button
@@ -144,7 +140,6 @@ export function KitComposicaoTable({ composicao, itens, onChange }: Props) {
   };
 
   const selecionarItem = (index: number, item: EstoqueItem) => {
-    // Salva o campo "item" como identificador principal (codigoItem é null na maioria)
     onChange(composicao.map((linha, i) =>
       i === index ? { ...linha, codigoItem: item.item ?? item.codigoItem ?? "" } : linha
     ));
@@ -169,12 +164,11 @@ export function KitComposicaoTable({ composicao, itens, onChange }: Props) {
         </thead>
         <tbody>
           {composicao.map((linha, i) => {
-            // Busca por campo "item" (identificador atual) ou codigoItem (futuro)
             const itemEncontrado = itens.find(
               it => it.item === linha.codigoItem || it.codigoItem === linha.codigoItem
             );
-            const valorUnit = Number(itemEncontrado?.valorUnitario ?? 0);
-            const subtotal = valorUnit * linha.quantidade;
+            const valorUnit = itemEncontrado ? calcularValorComercial(itemEncontrado) : 0;
+            const subtotal  = valorUnit * linha.quantidade;
             return (
               <tr key={i} className="hover:bg-gray-50">
                 <td className="px-2 py-1 border border-gray-300">

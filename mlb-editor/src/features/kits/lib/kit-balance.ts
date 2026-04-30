@@ -1,10 +1,6 @@
 import type { EstoqueItem } from "../../estoque/model/EstoqueItem";
 import type { Kit } from "../model/Kit";
-
-const str = (v: unknown): string => (v == null ? "" : String(v));
-
-const encontrarItem = (itens: EstoqueItem[], identificador: string): EstoqueItem | undefined =>
-  itens.find(i => str(i.item) === identificador || str(i.codigoItem) === identificador);
+import { str, encontrarItem } from "./kit-utils";
 
 // Desconta o estoque de cada item que compõe o kit
 export const baixarKit = (
