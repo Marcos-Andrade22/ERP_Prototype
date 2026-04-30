@@ -39,7 +39,6 @@ export function ItemForm({ initialItem, onDelete }: Props) {
     if (!e.currentTarget.contains(e.relatedTarget)) save();
   };
 
-  // Helper: retorna as props de estilo para um campo
   const estiloProps = (campo: string) => ({
     fieldName: campo,
     estilo: getEstilo(campo),
@@ -135,7 +134,7 @@ export function ItemForm({ initialItem, onDelete }: Props) {
           <div className="bg-white min-h-[200px]">
             {activeTab === "medidas" && <TabMedidas item={item} handleChange={handleChange} />}
             {activeTab === "valores" && <TabValores item={item} handleChange={handleChange} />}
-            {activeTab === "historico" && <TabHistorico item={item} handleChange={handleChange} estiloProps={estiloProps} />}
+            {activeTab === "historico" && <TabHistorico item={item} handleChange={handleChange} />}
             {activeTab === "imagem" && <TabImagem item={item} handleChange={handleChange} />}
           </div>
         </div>
@@ -146,8 +145,8 @@ export function ItemForm({ initialItem, onDelete }: Props) {
             {panelBtn("site", "Site")}
           </div>
           <div className="bg-white min-h-[200px]">
-            {activePanel === "ml" && <PanelML item={item} handleChange={handleChange} estiloProps={estiloProps} />}
-            {activePanel === "site" && <PanelSite item={item} handleChange={handleChange} estiloProps={estiloProps} />}
+            {activePanel === "ml" && <PanelML item={item} handleChange={handleChange} />}
+            {activePanel === "site" && <PanelSite item={item} handleChange={handleChange} />}
           </div>
         </div>
       </div>
