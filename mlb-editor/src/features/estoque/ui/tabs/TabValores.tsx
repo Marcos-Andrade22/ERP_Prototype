@@ -7,26 +7,20 @@ type Props = {
     handleChange: (key: keyof EstoqueItem) => (value: any) => void;
 };
 
-// ── TAXAS FIXAS DOS CANAIS DE VENDA ──────────────────────────────────────────
 const TAXAS = {
     mlClassico:   0.138,
     mlPremium10x: 0.205,
     site:         0.113,
 };
 
-// "percent" é o default: trata undefined/vazio como percent
 function stTipo(item: EstoqueItem): "percent" | "valor" {
     return item.substituicaoTributariaTipo === "valor" ? "valor" : "percent";
 }
 
-// ── CÁLCULO DOS PREÇOS POR CANAL ──────────────────────────────────────────────
-// Preço base = Valor Comercial (já inclui lucro + acréscimo + ST)
-// Canal      = precoBase × (1 + taxa) + frete
 function calcularCanais(item: EstoqueItem) {
     const precoBase = calcularValorComercial(item);
     const frete     = parseFloat(String(item.frete))               || 0;
     const taxaCO    = (parseFloat(String(item.taxaClienteOficina)) || 0) / 100;
-
     return {
         precoBase,
         mlClassico:   precoBase * (1 + TAXAS.mlClassico)   + frete,
@@ -36,187 +30,164 @@ function calcularCanais(item: EstoqueItem) {
     };
 }
 
-// ── HELPERS ──────────────────────────────────────────────────────────────────
-function fmt(value: number): string {
-    return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+function fmt(v: number) {
+    return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
-interface ResultRowProps {
+interface CanalRowProps {
     label: string;
+    sub: string;
     value: number;
-    colorClass: string;
+    bg: string;
+    text: string;
 }
 
-function ResultRow({ label, value, colorClass }: ResultRowProps) {
+function CanalRow({ label, sub, value, bg, text }: CanalRowProps) {
     return (
-        <div className={`flex items-center justify-between px-2 py-1 rounded text-[11px] font-medium ${colorClass}`}>
-            <span>{label}</span>
-            <span className="font-semibold tabular-nums">{fmt(value)}</span>
+        <div className={`flex items-center justify-between px-3 py-2 rounded ${bg} mb-1`}>
+            <div>
+                <p className={`text-[11px] font-semibold ${text}`}>{label}</p>
+                <p className="text-[10px] text-gray-400">{sub}</p>
+            </div>
+            <span className={`text-[13px] font-bold tabular-nums ${text}`}>{fmt(value)}</span>
         </div>
     );
 }
 
-// ── COMPONENTE ───────────────────────────────────────────────────────────────
 export function TabValores({ item, handleChange }: Props) {
     const valorComercial = calcularValorComercial(item);
     const canais         = calcularCanais(item);
     const stAtual        = stTipo(item);
 
     return (
-        <div className="p-3 flex flex-col gap-4">
+        // ── GRID DUAS COLUNAS: esquerda = inputs | direita = resultados ──
+        <div className="grid grid-cols-2 divide-x divide-gray-200 min-h-[320px]">
 
-            {/* ── SEÇÃO 1: VALORES COMERCIAIS ── */}
-            <div className="grid grid-cols-2 gap-3">
+            {/* ── COLUNA ESQUERDA: entradas ── */}
+            <div className="p-4 flex flex-col gap-3">
+                <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Entradas</p>
 
-                {/* Valor Unitário — campo único */}
-                <div className="col-span-2">
-                    <NumberInput
-                        label="Valor Unitário:"
-                        value={item.valorUnitario}
-                        onChange={handleChange("valorUnitario")}
-                    />
-                </div>
+                {/* Valor Unitário */}
+                <NumberInput
+                    label="Valor Unitário:"
+                    value={item.valorUnitario}
+                    onChange={handleChange("valorUnitario")}
+                />
 
                 {/* Lucro */}
-                <div className="col-span-2">
-                    <span className="text-[11px] font-medium text-gray-700">Lucro:</span>
-                    <div className="flex items-center gap-4 mt-1">
-                        <label className="flex items-center gap-1 text-[11px]">
-                            <input
-                                type="radio"
-                                name="lucroTipo"
-                                value="percent"
+                <div>
+                    <span className="text-[11px] font-medium text-gray-600">Lucro:</span>
+                    <div className="flex items-center gap-3 mt-1">
+                        <label className="flex items-center gap-1 text-[11px] text-gray-700">
+                            <input type="radio" name="lucroTipo" value="percent"
                                 checked={item.lucroTipo === "percent"}
                                 onChange={() => handleChange("lucroTipo")("percent")}
-                                className="h-3 w-3"
-                            />
+                                className="h-3 w-3" />
                             %
                         </label>
-                        <label className="flex items-center gap-1 text-[11px]">
-                            <input
-                                type="radio"
-                                name="lucroTipo"
-                                value="fixed"
+                        <label className="flex items-center gap-1 text-[11px] text-gray-700">
+                            <input type="radio" name="lucroTipo" value="fixed"
                                 checked={item.lucroTipo === "fixed"}
                                 onChange={() => handleChange("lucroTipo")("fixed")}
-                                className="h-3 w-3"
-                            />
+                                className="h-3 w-3" />
                             R$
                         </label>
-                        <NumberInput
-                            label=""
-                            value={item.lucroValor}
-                            onChange={handleChange("lucroValor")}
-                            className="w-24"
-                        />
+                        <div className="w-24">
+                            <NumberInput label="" value={item.lucroValor} onChange={handleChange("lucroValor")} />
+                        </div>
                     </div>
                 </div>
 
-                {/* Acréscimo — sempre % */}
+                {/* Acréscimo */}
                 <NumberInput
                     label="Acréscimo (%):"
                     value={item.acrescimoPercent}
                     onChange={handleChange("acrescimoPercent")}
                 />
 
-                {/* Valor Comercial (Venda) — read-only */}
+                {/* ST */}
                 <div>
-                    <span className="text-[11px] font-medium text-gray-700">Valor Comercial (Venda):</span>
-                    <div className="mt-1 px-2 py-1 bg-gray-100 border border-gray-200 rounded text-[11px] font-semibold text-gray-800 tabular-nums select-none">
-                        {fmt(valorComercial)}
-                    </div>
-                </div>
-
-                {/* Substituição Tributária */}
-                <div className="col-span-2">
-                    <span className="text-[11px] font-medium text-gray-700">Substituição Tributária:</span>
-                    <div className="flex items-center gap-4 mt-1">
-                        <label className="flex items-center gap-1 text-[11px]">
-                            <input
-                                type="radio"
-                                name="stTipo"
-                                value="percent"
+                    <span className="text-[11px] font-medium text-gray-600">Substituição Tributária:</span>
+                    <div className="flex items-center gap-3 mt-1">
+                        <label className="flex items-center gap-1 text-[11px] text-gray-700">
+                            <input type="radio" name="stTipo" value="percent"
                                 checked={stAtual === "percent"}
                                 onChange={() => handleChange("substituicaoTributariaTipo")("percent")}
-                                className="h-3 w-3"
-                            />
+                                className="h-3 w-3" />
                             %
                         </label>
-                        <label className="flex items-center gap-1 text-[11px]">
-                            <input
-                                type="radio"
-                                name="stTipo"
-                                value="valor"
+                        <label className="flex items-center gap-1 text-[11px] text-gray-700">
+                            <input type="radio" name="stTipo" value="valor"
                                 checked={stAtual === "valor"}
                                 onChange={() => handleChange("substituicaoTributariaTipo")("valor")}
-                                className="h-3 w-3"
-                            />
+                                className="h-3 w-3" />
                             R$
                         </label>
-                        <NumberInput
-                            label=""
-                            value={item.substituicaoTributariaValor}
-                            onChange={handleChange("substituicaoTributariaValor")}
-                            className="w-24"
-                        />
+                        <div className="w-24">
+                            <NumberInput label="" value={item.substituicaoTributariaValor} onChange={handleChange("substituicaoTributariaValor")} />
+                        </div>
                     </div>
                 </div>
 
+                <hr className="border-gray-200" />
+
+                {/* Frete + Taxa */}
+                <NumberInput
+                    label="Frete (R$):"
+                    value={item.frete}
+                    onChange={handleChange("frete")}
+                />
+                <NumberInput
+                    label="Taxa Cliente / Oficina (%):"
+                    value={item.taxaClienteOficina}
+                    onChange={handleChange("taxaClienteOficina")}
+                />
             </div>
 
-            {/* ── DIVISOR ── */}
-            <hr className="border-gray-200" />
+            {/* ── COLUNA DIREITA: resultados ── */}
+            <div className="p-4 flex flex-col gap-2">
+                <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Resultados em tempo real</p>
 
-            {/* ── SEÇÃO 2: CALCULADORA DE PREÇOS ── */}
-            <div>
-                <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                    Calculadora de Preços
-                </p>
-
-                <div className="grid grid-cols-2 gap-3 mb-3">
-                    <NumberInput
-                        label="Frete (R$):"
-                        value={item.frete}
-                        onChange={handleChange("frete")}
-                    />
-                    <NumberInput
-                        label="Taxa Cliente / Oficina (%):"
-                        value={item.taxaClienteOficina}
-                        onChange={handleChange("taxaClienteOficina")}
-                    />
+                {/* Valor Comercial destaque */}
+                <div className="flex items-center justify-between px-3 py-2 bg-gray-100 rounded mb-2">
+                    <span className="text-[11px] font-semibold text-gray-600">Valor Comercial (base)</span>
+                    <span className="text-[14px] font-bold text-gray-800 tabular-nums">{fmt(canais.precoBase)}</span>
                 </div>
 
-                <ResultRow
-                    label="Valor Comercial (base)"
-                    value={canais.precoBase}
-                    colorClass="bg-gray-100 text-gray-800"
+                <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1">Preços por Canal</p>
+
+                <CanalRow
+                    label="ML Clássico"
+                    sub="taxa 13,8% + frete"
+                    value={canais.mlClassico}
+                    bg="bg-pink-50"
+                    text="text-pink-800"
+                />
+                <CanalRow
+                    label="ML Premium 10x"
+                    sub="taxa 20,5% + frete"
+                    value={canais.mlPremium10x}
+                    bg="bg-blue-50"
+                    text="text-blue-800"
+                />
+                <CanalRow
+                    label="Site"
+                    sub="taxa 11,3% · sem frete"
+                    value={canais.site}
+                    bg="bg-gray-100"
+                    text="text-gray-700"
+                />
+                <CanalRow
+                    label="Taxa Cliente / Oficina"
+                    sub="taxa personalizada"
+                    value={canais.taxaCliente}
+                    bg="bg-red-50"
+                    text="text-red-800"
                 />
 
-                <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mt-3 mb-1">
-                    Preços por Canal
+                <p className="text-[10px] text-gray-300 italic mt-auto pt-2">
+                    Atualiza a cada alteração nos campos ao lado.
                 </p>
-                <div className="flex flex-col gap-1">
-                    <ResultRow
-                        label="ML Clássico (13,8%)"
-                        value={canais.mlClassico}
-                        colorClass="bg-pink-100 text-pink-800"
-                    />
-                    <ResultRow
-                        label="ML Premium 10x (20,5%)"
-                        value={canais.mlPremium10x}
-                        colorClass="bg-blue-100 text-blue-800"
-                    />
-                    <ResultRow
-                        label="Site (11,3%)"
-                        value={canais.site}
-                        colorClass="bg-gray-200 text-gray-700"
-                    />
-                    <ResultRow
-                        label="Taxa Cliente / Oficina"
-                        value={canais.taxaCliente}
-                        colorClass="bg-red-100 text-red-800"
-                    />
-                </div>
             </div>
 
         </div>
