@@ -18,6 +18,33 @@ interface DropdownBuscaProps {
 const str = (v: unknown): string =>
   v == null ? "" : String(v).toLowerCase();
 
+// ── CÁLCULO DO VALOR COMERCIAL (espelho de TabValores.tsx) ────────────────────
+// base = Valor Unitário
+// com_lucro     = base × (1 + Lucro%)  OU  base + Lucro R$
+// com_acrescimo = com_lucro × (1 + Acréscimo%)
+// ST            = base × (ST%)  OU  ST R$ fixo
+// Valor Comercial = com_acrescimo + ST
+function calcularValorComercial(item: EstoqueItem): number {
+  const base      = parseFloat(String(item.valorUnitario))               || 0;
+  const lucro     = parseFloat(String(item.lucroValor))                  || 0;
+  const acrescimo = (parseFloat(String(item.acrescimoPercent))           || 0) / 100;
+  const stVal     = parseFloat(String(item.substituicaoTributariaValor)) || 0;
+
+  const comLucro =
+    item.lucroTipo === "percent"
+      ? base * (1 + lucro / 100)
+      : base + lucro;
+
+  const comAcrescimo = comLucro * (1 + acrescimo);
+
+  const st =
+    item.substituicaoTributariaTipo === "valor"
+      ? stVal
+      : base * (stVal / 100);
+
+  return comAcrescimo + st;
+}
+
 function DropdownBusca({ valor, itens, onSelecionar, onChangeTexto }: DropdownBuscaProps) {
   const [aberto, setAberto] = useState(false);
   const [query, setQuery] = useState(valor);
@@ -49,7 +76,6 @@ function DropdownBusca({ valor, itens, onSelecionar, onChangeTexto }: DropdownBu
           ].join(" ");
           return termos.every(termo => haystack.includes(termo));
         })
-        // Ordena: itens cujo campo "item" começa com a query vêm primeiro
         .sort((a, b) => {
           const q = query.trim().toLowerCase();
           const aComeca = str(a.item).startsWith(q) ? 0 : 1;
@@ -65,7 +91,6 @@ function DropdownBusca({ valor, itens, onSelecionar, onChangeTexto }: DropdownBu
     setAberto(true);
   };
 
-  // Sempre exibe o campo "item" após seleção
   const handleSelecionar = (item: EstoqueItem) => {
     setQuery(item.item ?? item.codigoItem ?? "");
     onSelecionar(item);
@@ -95,7 +120,6 @@ function DropdownBusca({ valor, itens, onSelecionar, onChangeTexto }: DropdownBu
             <span className="px-2 py-1 text-right w-20">Qtde. Estoque</span>
           </div>
 
-          {/* scroll a partir de 10 itens, mostra até 20 */}
           <div className="overflow-y-auto" style={{ maxHeight: "280px" }}>
             {resultados.map((item, idx) => (
               <button
@@ -144,7 +168,6 @@ export function KitComposicaoTable({ composicao, itens, onChange }: Props) {
   };
 
   const selecionarItem = (index: number, item: EstoqueItem) => {
-    // Salva o campo "item" como identificador principal (codigoItem é null na maioria)
     onChange(composicao.map((linha, i) =>
       i === index ? { ...linha, codigoItem: item.item ?? item.codigoItem ?? "" } : linha
     ));
@@ -169,12 +192,12 @@ export function KitComposicaoTable({ composicao, itens, onChange }: Props) {
         </thead>
         <tbody>
           {composicao.map((linha, i) => {
-            // Busca por campo "item" (identificador atual) ou codigoItem (futuro)
             const itemEncontrado = itens.find(
               it => it.item === linha.codigoItem || it.codigoItem === linha.codigoItem
             );
-            const valorUnit = Number(itemEncontrado?.valorUnitario ?? 0);
-            const subtotal = valorUnit * linha.quantidade;
+            // Valor Unit. reflete o Valor Comercial calculado do item
+            const valorUnit = itemEncontrado ? calcularValorComercial(itemEncontrado) : 0;
+            const subtotal  = valorUnit * linha.quantidade;
             return (
               <tr key={i} className="hover:bg-gray-50">
                 <td className="px-2 py-1 border border-gray-300">

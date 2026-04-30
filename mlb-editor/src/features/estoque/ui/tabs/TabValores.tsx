@@ -45,24 +45,20 @@ function calcularValorComercial(item: EstoqueItem): number {
     return comAcrescimo + st;
 }
 
-// ── CÁLCULO DOS PREÇOS POR CANAL (calculadora) ────────────────────────────────
+// ── CÁLCULO DOS PREÇOS POR CANAL ──────────────────────────────────────────────
+// Preço base = Valor Comercial (já inclui lucro + acréscimo + ST)
+// Canal      = precoBase × (1 + taxa) + frete
 function calcularCanais(item: EstoqueItem) {
-    const base   = parseFloat(String(item.valorUnitario))          || 0;
-    const lucro  = parseFloat(String(item.lucroValor))             || 0;
-    const frete  = parseFloat(String(item.frete))                  || 0;
-    const taxaCO = (parseFloat(String(item.taxaClienteOficina))    || 0) / 100;
-
-    const comLucro =
-        item.lucroTipo === "percent"
-            ? base * (1 + lucro / 100)
-            : base + lucro;
+    const precoBase = calcularValorComercial(item);
+    const frete     = parseFloat(String(item.frete))               || 0;
+    const taxaCO    = (parseFloat(String(item.taxaClienteOficina)) || 0) / 100;
 
     return {
-        precoBase:    comLucro,
-        mlClassico:   comLucro * (1 + TAXAS.mlClassico)   + frete,
-        mlPremium10x: comLucro * (1 + TAXAS.mlPremium10x) + frete,
-        site:         comLucro * (1 + TAXAS.site),
-        taxaCliente:  comLucro * (1 + taxaCO),
+        precoBase,
+        mlClassico:   precoBase * (1 + TAXAS.mlClassico)   + frete,
+        mlPremium10x: precoBase * (1 + TAXAS.mlPremium10x) + frete,
+        site:         precoBase * (1 + TAXAS.site),
+        taxaCliente:  precoBase * (1 + taxaCO),
     };
 }
 
@@ -217,7 +213,7 @@ export function TabValores({ item, handleChange }: Props) {
                 </div>
 
                 <ResultRow
-                    label="Preço Base (com lucro)"
+                    label="Valor Comercial (base)"
                     value={canais.precoBase}
                     colorClass="bg-gray-100 text-gray-800"
                 />

@@ -20,8 +20,7 @@ export function NumberInput({
 
     const [raw, setRaw] = useState<string>(toDisplay(value));
 
-    // Sincroniza com valor externo somente quando o campo não está em foco,
-    // evitando sobrescrever o que o usuário está digitando (ex.: "0.")
+    // Sincroniza com valor externo somente quando o campo não está em foco
     useEffect(() => {
         if (document.activeElement !== inputRef.current) {
             setRaw(toDisplay(value));
@@ -49,7 +48,10 @@ export function NumberInput({
         <Field label={label} required={required} error={error}>
             <input
                 ref={inputRef}
-                type="number"
+                // type="text" + inputMode="decimal" permite campo vazio sem
+                // interferência do browser (browsers bloqueiam "" em type=number)
+                type="text"
+                inputMode="decimal"
                 value={raw}
                 onChange={handleChange}
                 onBlur={handleBlur}
