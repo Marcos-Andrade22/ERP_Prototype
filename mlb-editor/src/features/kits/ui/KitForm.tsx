@@ -5,7 +5,7 @@ import { KitComposicaoTable } from "./KitComposicaoTable";
 import { KitMlbModal } from "./KitMlbModal";
 import { calcularValorKit } from "../lib/kit-calc";
 
-const TIPOS: Kit["tipo"][] = ["kit", "combo", "jogo", "par"];
+const TIPOS: Kit["tipo"][] = ["kit", "jogo", "par", "unidade"];
 
 interface Props {
   kitInicial?: Kit;

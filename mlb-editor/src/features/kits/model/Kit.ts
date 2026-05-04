@@ -6,7 +6,7 @@ export interface KitComposicao {
 export interface Kit {
   id: string;
   nome: string;
-  tipo: "kit" | "combo" | "jogo" | "par";
+  tipo: "kit" | "unidade" | "jogo" | "par";
   composicao: KitComposicao[];
   valorCalculado?: number; // computado somando os itens
 }
