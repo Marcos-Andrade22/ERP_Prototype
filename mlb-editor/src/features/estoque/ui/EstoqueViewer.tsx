@@ -47,7 +47,6 @@ export function EstoqueViewer({ itemIdInicial }: EstoqueViewerProps) {
 
     const totalPaginas = Math.ceil(total / LIMITE);
 
-    // Busca o item diretamente pelo id quando vindo da página de resultados
     useEffect(() => {
         if (!itemIdInicial) return;
         itensService.buscarPorId(itemIdInicial).then(item => {
@@ -79,6 +78,30 @@ export function EstoqueViewer({ itemIdInicial }: EstoqueViewerProps) {
         setFiltros(searchInput ? { item: searchInput } : {});
     };
 
+    const handleDuplicate = async () => {
+        const itemAtual = itemForcado ?? items[selectedIndex];
+        if (!itemAtual?.id) return;
+
+        const confirmado = window.confirm(`Duplicar "${itemAtual.item}"? Um novo item idêntico será criado.`);
+        if (!confirmado) return;
+
+        const { id, codigoItem, mlb, rawIndex, ...resto } = itemAtual;
+        const novoItem: EstoqueItem = {
+            ...emptyItem,
+            ...resto,
+            codigoItem: '',
+            mlb: '',
+            item: `${itemAtual.item} (cópia)`,
+            quantidade: 0,
+        };
+
+        const criado = await itensService.criar(novoItem);
+        const novoId = criado?.id ?? criado?.data?.id;
+        if (novoId) {
+            navigate(`/estoque/item/${novoId}`);
+        }
+    };
+
     const navigateItem = (delta: number) => {
         setItemForcado(null);
         setSelectedIndex(i => Math.min(items.length - 1, Math.max(0, i + delta)));
@@ -107,10 +130,8 @@ export function EstoqueViewer({ itemIdInicial }: EstoqueViewerProps) {
             </div>
 
             <div className="p-4 space-y-3">
-                {/* Barra de controles */}
                 <div className="flex items-center gap-4 flex-wrap bg-[#ececec] border border-gray-400 px-3 py-2 text-xs">
 
-                    {/* Busca */}
                     <input
                         type="text"
                         placeholder="🔍 Buscar item..."
@@ -122,7 +143,6 @@ export function EstoqueViewer({ itemIdInicial }: EstoqueViewerProps) {
                     {loading && <span className="text-blue-600">Carregando...</span>}
                     {erro && <span className="text-red-600">{erro}</span>}
 
-                    {/* Navegação entre itens */}
                     {items.length > 0 && (
                         <div className="flex items-center gap-2">
                             <button
@@ -161,7 +181,6 @@ export function EstoqueViewer({ itemIdInicial }: EstoqueViewerProps) {
                         </div>
                     )}
 
-                    {/* Paginação */}
                     {totalPaginas > 1 && (
                         <div className="flex items-center gap-2 ml-auto">
                             <button
@@ -191,6 +210,7 @@ export function EstoqueViewer({ itemIdInicial }: EstoqueViewerProps) {
                     key={selectedItem.codigoItem || selectedItem.id || `empty-${selectedIndex}`}
                     initialItem={selectedItem}
                     onDelete={handleDelete}
+                    onDuplicate={handleDuplicate}
                 />
             </div>
         </div>

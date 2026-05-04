@@ -20,6 +20,9 @@ type Panel = "ml" | "site";
 type Props = {
   initialItem: EstoqueItem;
   onDelete?: () => void;
+  onDuplicate?: () => void;
+  isNew?: boolean;
+  onSaveSuccess?: (id: number) => void;
 };
 
 const saveStatusLabel: Record<SaveStatus, React.ReactNode> = {
@@ -29,8 +32,8 @@ const saveStatusLabel: Record<SaveStatus, React.ReactNode> = {
   error: <span className="text-red-600 font-semibold">Erro ao salvar ✗</span>,
 };
 
-export function ItemForm({ initialItem, onDelete }: Props) {
-  const { item, handleChange, save, saveStatus } = useItemForm(initialItem);
+export function ItemForm({ initialItem, onDelete, onDuplicate, isNew, onSaveSuccess }: Props) {
+  const { item, handleChange, save, saveStatus } = useItemForm(initialItem, { isNew, onSaveSuccess });
   const [activeTab, setActiveTab] = useState<Tab>("medidas");
   const [activePanel, setActivePanel] = useState<Panel>("ml");
   const { getEstilo, setEstiloCampo } = useCampoEstilos(item.id);
@@ -87,6 +90,15 @@ export function ItemForm({ initialItem, onDelete }: Props) {
         <div className="flex items-center gap-4">
           <span className="text-[11px]">{saveStatusLabel[saveStatus]}</span>
           <span className="text-[11px] font-semibold text-red-600">Disponíveis: {item.quantidade}</span>
+          {item.id && onDuplicate && (
+            <button
+              onClick={onDuplicate}
+              className="px-2 py-1 text-[11px] border border-blue-300 text-blue-600 hover:bg-blue-50 transition-colors"
+              title="Duplicar este item"
+            >
+              Duplicar
+            </button>
+          )}
           {item.id && onDelete && (
             <button onClick={onDelete} className="px-2 py-1 text-[11px] border border-red-300 text-red-600 hover:bg-red-50 transition-colors">
               Excluir

@@ -4,26 +4,29 @@ import { itensService } from "./item-service";
 
 export type SaveStatus = "idle" | "saving" | "saved" | "error";
 
-export function useItemForm(initialItem: EstoqueItem) {
+interface UseItemFormOptions {
+  isNew?: boolean;
+  onSaveSuccess?: (id: number) => void;
+}
+
+export function useItemForm(initialItem: EstoqueItem, options: UseItemFormOptions = {}) {
+  const { isNew, onSaveSuccess } = options;
   const [item, setItem] = useState<EstoqueItem>(initialItem);
   const [temAlteracoes, setTemAlteracoes] = useState(false);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Refs sempre atualizadas com os valores mais recentes
   const itemRef = useRef(item);
   const temAlteracoesRef = useRef(temAlteracoes);
   itemRef.current = item;
   temAlteracoesRef.current = temAlteracoes;
 
-  // Reseta apenas quando trocar de item (ID diferente)
   useEffect(() => {
     setItem(initialItem);
     setTemAlteracoes(false);
     setSaveStatus("idle");
   }, [initialItem.id]);
 
-  // Salva ao desmontar (ex: navegar para outra tela)
   useEffect(() => {
     return () => {
       if (temAlteracoesRef.current && itemRef.current?.id) {
@@ -38,7 +41,6 @@ export function useItemForm(initialItem: EstoqueItem) {
   };
 
   const save = useCallback(async () => {
-    // Lê sempre da ref — nunca stale
     if (!temAlteracoesRef.current) return;
     const currentItem = itemRef.current;
 
@@ -47,7 +49,12 @@ export function useItemForm(initialItem: EstoqueItem) {
       if (currentItem.id) {
         await itensService.atualizar(currentItem.id, currentItem);
       } else {
-        await itensService.criar(currentItem);
+        const criado = await itensService.criar(currentItem);
+        const novoId = criado?.id ?? criado?.data?.id;
+        if (novoId && onSaveSuccess) {
+          onSaveSuccess(novoId);
+          return;
+        }
       }
       setTemAlteracoes(false);
       setSaveStatus("saved");
@@ -57,7 +64,7 @@ export function useItemForm(initialItem: EstoqueItem) {
       console.error(err);
       setSaveStatus("error");
     }
-  }, []);
+  }, [onSaveSuccess]);
 
   return { item, handleChange, save, saveStatus, temAlteracoes };
 }

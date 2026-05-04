@@ -9,6 +9,7 @@ import EstoquePage from "../../features/estoque/ui/pages/EstoquePage";
 import BuscaPage from "../../features/estoque/ui/pages/BuscaPage";
 import ResultadosBuscaPage from "../../features/estoque/ui/pages/ResultadosBuscaPage";
 import ItemPage from "../../features/estoque/ui/pages/ItemPage";
+import NovoItemPage from "../../features/estoque/ui/pages/NovoItemPage";
 
 import MontarKitPage from "../../features/kits/ui/pages/MontarKitPage";
 
@@ -27,6 +28,7 @@ export default function AppRoutes() {
 
                 <Route path="/estoque" element={<EstoquePage />} />
                 <Route path="/estoque/busca" element={<BuscaPage />} />
+                <Route path="/estoque/novo" element={<NovoItemPage />} />
                 <Route path="/estoque/resultados" element={<ResultadosBuscaPage />} />
                 <Route path="/estoque/item/:id" element={<ItemPage />} />
 

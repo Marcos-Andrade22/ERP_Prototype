@@ -5,6 +5,7 @@ export default function EstoquePage() {
 
     const acoes = [
         { label: "Buscar Item", descricao: "Pesquisar por código, marca, referência, etc.", rota: "/estoque/busca", emoji: "🔍" },
+        { label: "Novo Item", descricao: "Cadastrar um novo item no estoque", rota: "/estoque/novo", emoji: "➕" },
         { label: "Montar Kit", descricao: "Compor e balancear kits de produtos", rota: "/kits", emoji: "🔧" },
     ];
 
@@ -43,7 +44,6 @@ export default function EstoquePage() {
                                 </span>
                             </div>
                             <p className="text-[11px] text-gray-500">{acao.descricao}</p>
-
                         </button>
                     ))}
                 </div>
