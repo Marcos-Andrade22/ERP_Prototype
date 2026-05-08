@@ -53,10 +53,10 @@ const FILTROS_LIKE: Array<[string, Column]> = [
   ["versao_motor", itens.versaoMotor],
   ["montadora", itens.montadora],
   ["sentido", itens.sentido],
+  ["mlb", itens.mlb],
 ];
 
 const FILTROS_EQ: Array<[string, Column]> = [
-  ["mlb", itens.mlb],
   ["setor", itens.setor],
   ["local", itens.local],
   ["situacao_ml", itens.situacaoMl],
@@ -87,10 +87,7 @@ router.get("/", async (req: Request, res: Response) => {
 
     // Quando all=true, retorna todos os registros sem paginação (uso interno: dropdowns)
     if (all === "true") {
-      const results = await db
-        .select()
-        .from(itens)
-        .where(whereClause);
+      const results = await db.select().from(itens).where(whereClause);
 
       return res.json({
         data: results.map(mapearParaFrontend),
