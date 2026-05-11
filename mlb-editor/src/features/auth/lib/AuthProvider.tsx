@@ -1,8 +1,9 @@
-import { useState, ReactNode } from "react";
+import { useState } from "react";
+import type { ReactNode } from "react";
 import { AuthContext } from "./useAuth";
 
 // Altere esta senha conforme necessário
-const SENHA_FIXA = import.meta.env.VITE_APP_PASSWORD ?? "soimportados2025";
+const SENHA_FIXA = import.meta.env.VITE_APP_PASSWORD;
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [autenticado, setAutenticado] = useState<boolean>(() => {
