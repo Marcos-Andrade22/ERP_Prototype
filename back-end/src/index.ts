@@ -11,16 +11,23 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT ?? 3333;
 
-const allowedOrigins = [
+const allowedOrigins: (string | RegExp)[] = [
   "http://localhost:5173",
   "http://localhost:4173",
+  /\.vercel\.app$/,
   process.env.FRONTEND_URL,
-].filter(Boolean) as string[];
+].filter(Boolean) as (string | RegExp)[];
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (!origin) return callback(null, true);
+
+      const permitido = allowedOrigins.some((o) =>
+        o instanceof RegExp ? o.test(origin) : o === origin,
+      );
+
+      if (permitido) {
         callback(null, true);
       } else {
         callback(new Error(`CORS bloqueado: ${origin}`));
