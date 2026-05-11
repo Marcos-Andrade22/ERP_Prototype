@@ -1,10 +1,10 @@
+import { AuthProvider } from "../features/auth/lib/AuthProvider";
 import AppRoutes from "./routes";
 
-
-function App() {
+export default function App() {
   return (
-    <AppRoutes />
+    <AuthProvider>
+      <AppRoutes />
+    </AuthProvider>
   );
 }
-
-export default App;
