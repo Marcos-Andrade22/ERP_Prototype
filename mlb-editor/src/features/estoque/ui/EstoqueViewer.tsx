@@ -130,7 +130,7 @@ export function EstoqueViewer({ itemIdInicial }: EstoqueViewerProps) {
             </div>
 
             <div className="p-4 space-y-3">
-                <div className="flex items-center gap-4 flex-wrap bg-[#ececec] border border-gray-400 px-3 py-2 text-xs">
+                {/* <div className="flex items-center gap-4 flex-wrap bg-[#ececec] border border-gray-400 px-3 py-2 text-xs">
 
                     <input
                         type="text"
@@ -204,7 +204,7 @@ export function EstoqueViewer({ itemIdInicial }: EstoqueViewerProps) {
                             </button>
                         </div>
                     )}
-                </div>
+                </div> */}
 
                 <ItemForm
                     key={selectedItem.codigoItem || selectedItem.id || `empty-${selectedIndex}`}
