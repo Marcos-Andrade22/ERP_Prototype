@@ -33,10 +33,13 @@ export function NumberInput({
 
         if (v === "" || v === "-") {
             onChange("");
-        } else {
-            const num = Number(v);
-            onChange(isNaN(num) ? v : num);
+            return;
         }
+
+        // Aceita vírgula como separador decimal (padrão pt-BR)
+        const normalized = v.replace(",", ".");
+        const num = Number(normalized);
+        onChange(isNaN(num) ? v : num);
     };
 
     const handleBlur = () => {
