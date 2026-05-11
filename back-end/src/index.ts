@@ -11,7 +11,24 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT ?? 3333;
 
-app.use(cors({ origin: "http://localhost:5173" }));
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:4173",
+  process.env.FRONTEND_URL,
+].filter(Boolean) as string[];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`CORS bloqueado: ${origin}`));
+      }
+    },
+  }),
+);
+
 app.use(express.json());
 
 app.get("/ping", (_req, res) => {

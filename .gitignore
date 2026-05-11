@@ -9,6 +9,8 @@ back-end/dist/
 # Front-end
 mlb-editor/node_modules/
 mlb-editor/dist/
+mlb-editor/.env
+mlb-editor/.env.production
 
 # Sistema
 .DS_Store
