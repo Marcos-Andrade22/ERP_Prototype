@@ -83,9 +83,6 @@ export function ItemForm({ initialItem, onDelete, onDuplicate, isNew, onSaveSucc
       <div className="flex items-end justify-between mb-3">
         <div className="flex items-end gap-2">
           <MlbTable itemId={item.id!} />
-          <div className="w-32">
-            <TextInput label="Código:" value={item.codigoItem} onChange={handleChange("codigoItem")} {...estiloProps("codigoItem")} />
-          </div>
         </div>
         <div className="flex items-center gap-4">
           <span className="text-[11px]">{saveStatusLabel[saveStatus]}</span>
