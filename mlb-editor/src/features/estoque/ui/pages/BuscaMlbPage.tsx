@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { itensService } from "../../lib/item-service";
-import type { EstoqueItem } from "../../model/EstoqueItem";
+import { api } from "../../../../shared/lib/api";
 
 type CampoMlb = {
   key: string;
@@ -13,17 +12,29 @@ const CAMPOS_MLB: CampoMlb[] = [
   { key: "cubagem",     label: "Cubagem" },
   { key: "otimizado",   label: "Otimizado" },
   { key: "full",        label: "Full" },
-  { key: "patrocinado", label: "Patrocinado" },
+  { key: "patrocinados", label: "Patrocinado" },
   { key: "clipe",       label: "Clipe" },
   { key: "revisado",    label: "Revisado" },
 ];
+
+type ResultadoMlb = {
+  itemId: number;
+  item: string;
+  marca: string;
+  referencia: string;
+  quantidade: number;
+  quantidadeMinima: number | null;
+  setor: string;
+  mlbValor: string;
+  mlbModelo: string;
+};
 
 export default function BuscaMlbPage() {
   const navigate = useNavigate();
   const [selecionados, setSelecionados] = useState<Record<string, boolean | null>>(
     Object.fromEntries(CAMPOS_MLB.map(c => [c.key, null]))
   );
-  const [resultados, setResultados] = useState<EstoqueItem[] | null>(null);
+  const [resultados, setResultados] = useState<ResultadoMlb[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
 
@@ -44,8 +55,8 @@ export default function BuscaMlbPage() {
       const params = Object.fromEntries(
         filtrosAtivos.map(([k, v]) => [k, String(v)])
       );
-      const res = await itensService.listar({ ...params, limit: 200 });
-      setResultados(res.data ?? []);
+      const { data } = await api.get("/mlb/buscar", { params });
+      setResultados(data.data ?? []);
     } catch {
       setErro("Erro ao buscar. Verifique a conexão com o servidor.");
     } finally {
@@ -145,11 +156,12 @@ export default function BuscaMlbPage() {
           <div className="bg-[#ececec] border border-gray-400">
             <div
               className="grid px-3 py-2 text-[11px] font-semibold text-white border-b border-gray-400"
-              style={{ backgroundColor: "#22252A", gridTemplateColumns: "1fr 100px 120px 70px 70px" }}
+              style={{ backgroundColor: "#22252A", gridTemplateColumns: "1fr 100px 120px 80px 70px 70px" }}
             >
               <div>Item</div>
               <div>Marca</div>
               <div>Referência</div>
+              <div>MLB</div>
               <div className="text-center">Qtde.</div>
               <div className="text-center">Setor</div>
             </div>
@@ -162,16 +174,17 @@ export default function BuscaMlbPage() {
 
             {resultados.map((item, index) => (
               <div
-                key={item.id ?? index}
-                onClick={() => navigate(`/estoque/item/${item.id}`)}
+                key={item.itemId ?? index}
+                onClick={() => navigate(`/estoque/item/${item.itemId}`)}
                 className={`grid px-3 py-2 text-[11px] border-b border-gray-200 cursor-pointer transition-colors ${
                   index % 2 === 0 ? "bg-white hover:bg-orange-50" : "bg-[#f5f5f5] hover:bg-orange-50"
                 }`}
-                style={{ gridTemplateColumns: "1fr 100px 120px 70px 70px" }}
+                style={{ gridTemplateColumns: "1fr 100px 120px 80px 70px 70px" }}
               >
                 <div className="font-medium text-gray-900 truncate">{item.item}</div>
                 <div className="text-gray-600 truncate">{item.marca || "—"}</div>
                 <div className="text-gray-500 truncate">{item.referencia || "—"}</div>
+                <div className="text-blue-600 font-mono truncate">{item.mlbValor || "—"}</div>
                 <div
                   className="text-center font-semibold tabular-nums"
                   style={{
