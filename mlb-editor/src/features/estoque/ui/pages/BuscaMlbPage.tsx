@@ -9,10 +9,13 @@ type CampoMlb = {
 };
 
 const CAMPOS_MLB: CampoMlb[] = [
+  { key: "ean",         label: "EAN" },
+  { key: "cubagem",     label: "Cubagem" },
+  { key: "otimizado",   label: "Otimizado" },
+  { key: "full",        label: "Full" },
   { key: "patrocinado", label: "Patrocinado" },
-  { key: "cubagem", label: "Cubagem" },
-  { key: "full", label: "Full" },
-  { key: "clipe", label: "Clipe" },
+  { key: "clipe",       label: "Clipe" },
+  { key: "revisado",    label: "Revisado" },
 ];
 
 export default function BuscaMlbPage() {
@@ -82,7 +85,7 @@ export default function BuscaMlbPage() {
             Selecione os campos e os valores desejados:
           </p>
 
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
             {CAMPOS_MLB.map(({ key, label }) => (
               <div key={key} className="bg-white border border-blue-200 p-3 space-y-2">
                 <p className="text-[11px] font-bold text-gray-700 uppercase">{label}</p>
@@ -93,7 +96,7 @@ export default function BuscaMlbPage() {
                     onChange={() => toggleCampo(key, true)}
                     className="accent-green-600"
                   />
-                  <span className="text-[11px] text-green-700 font-medium">✅ True (ativo)</span>
+                  <span className="text-[11px] text-green-700 font-medium">✅ True</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -102,7 +105,7 @@ export default function BuscaMlbPage() {
                     onChange={() => toggleCampo(key, false)}
                     className="accent-red-600"
                   />
-                  <span className="text-[11px] text-red-700 font-medium">❌ False (inativo)</span>
+                  <span className="text-[11px] text-red-700 font-medium">❌ False</span>
                 </label>
               </div>
             ))}
