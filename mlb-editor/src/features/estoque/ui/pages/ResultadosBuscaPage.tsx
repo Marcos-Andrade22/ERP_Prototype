@@ -7,7 +7,8 @@ import { calcularValorKit } from "../../../kits/lib/kit-calc";
 import type { EstoqueItem } from "../../model/EstoqueItem";
 import type { Kit } from "../../../kits/model/Kit";
 
-const POR_PAGINA = 20;
+const POR_PAGINA = 50;
+const LIMITE_MAX = 300;
 
 type LinhaEstoque = {
   id?: number;
@@ -53,7 +54,7 @@ export default function ResultadosBuscaPage() {
       try {
         const filtros = Object.fromEntries(searchParams.entries());
         const [resItens, resKits] = await Promise.all([
-          itensService.listar({ ...filtros, limit: 500 }),
+          itensService.listar({ ...filtros, limit: LIMITE_MAX }),
           kitsService.listar(),
         ]);
         setItensRaw(resItens.data ?? []);
@@ -104,7 +105,6 @@ export default function ResultadosBuscaPage() {
     }
   };
 
-  // Gera intervalo de páginas visíveis (máx 7 botões)
   const paginasVisiveis = useMemo(() => {
     const delta = 3;
     const range: number[] = [];
@@ -213,18 +213,18 @@ export default function ResultadosBuscaPage() {
         {/* Rodapé com contagem e paginação */}
         {!loading && resultados.length > 0 && (
           <div className="px-3 py-2 bg-[#ececec] border-t border-gray-300 flex flex-wrap items-center gap-3">
-            {/* Contadores */}
             <span className="text-[11px] text-gray-500">{linhasKits.length} kit(s)</span>
             <span className="text-[11px] text-gray-500">{linhasItens.length} item(ns)</span>
             <span className="text-[11px] text-gray-400">•</span>
             <span className="text-[11px] text-gray-500">
               Exibindo {(paginaAtual - 1) * POR_PAGINA + 1}–{Math.min(paginaAtual * POR_PAGINA, resultados.length)} de {resultados.length}
+              {resultados.length === LIMITE_MAX && (
+                <span className="ml-1 text-orange-600 font-semibold">(limite de {LIMITE_MAX} atingido)</span>
+              )}
             </span>
 
-            {/* Controles de página */}
             {totalPaginas > 1 && (
               <div className="ml-auto flex items-center gap-1">
-                {/* Primeira */}
                 <button
                   onClick={() => setPagina(1)}
                   disabled={paginaAtual === 1}
@@ -233,8 +233,6 @@ export default function ResultadosBuscaPage() {
                 >
                   «
                 </button>
-
-                {/* Anterior */}
                 <button
                   onClick={() => setPagina(p => Math.max(1, p - 1))}
                   disabled={paginaAtual === 1}
@@ -244,7 +242,6 @@ export default function ResultadosBuscaPage() {
                   ‹
                 </button>
 
-                {/* Números */}
                 {paginasVisiveis.map(n => (
                   <button
                     key={n}
@@ -259,7 +256,6 @@ export default function ResultadosBuscaPage() {
                   </button>
                 ))}
 
-                {/* Próxima */}
                 <button
                   onClick={() => setPagina(p => Math.min(totalPaginas, p + 1))}
                   disabled={paginaAtual === totalPaginas}
@@ -268,8 +264,6 @@ export default function ResultadosBuscaPage() {
                 >
                   ›
                 </button>
-
-                {/* Última */}
                 <button
                   onClick={() => setPagina(totalPaginas)}
                   disabled={paginaAtual === totalPaginas}
