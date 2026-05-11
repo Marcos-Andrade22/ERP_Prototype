@@ -19,10 +19,10 @@ export default function AppRoutes() {
     return (
         <BrowserRouter>
             <Routes>
-                <Route path="/" element={<Navigate to="/login" replace />} />
+                <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
                 <Route path="/login" element={<LoginPage />} />
-                <Route path="/registro" element={<RegistroPage />} />
+                // <Route path="/registro" element={<RegistroPage />} />
 
                 <Route path="/dashboard" element={<DashboardPage />} />
 
