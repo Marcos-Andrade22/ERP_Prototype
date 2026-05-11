@@ -1,12 +1,20 @@
 import { Router, Request, Response } from "express";
 import { db } from "../db";
 import { itens } from "../db/schema";
-import { like, eq, and, SQL } from "drizzle-orm";
+import { ilike, eq, and, SQL } from "drizzle-orm";
 import type { Column } from "drizzle-orm";
 import { parse } from "csv-parse/sync";
 import { upload } from "../config/multer";
 
 const router = Router();
+
+// ─── Sanitização ──────────────────────────────────────────────
+const sanitize = (value: any): any => {
+  if (typeof value === "string") {
+    return value.replace(/\0/g, "").replace(/\r/g, "").trim();
+  }
+  return value;
+};
 
 // ─── Mapeamento Frontend ↔ Backend ────────────────────────────
 const mapearParaFrontend = (item: any): any => ({
@@ -72,7 +80,7 @@ router.get("/", async (req: Request, res: Response) => {
     const filters: SQL[] = [];
 
     for (const [param, col] of FILTROS_LIKE) {
-      if (query[param]) filters.push(like(col as any, `%${query[param]}%`));
+      if (query[param]) filters.push(ilike(col as any, `%${query[param]}%`));
     }
 
     for (const [param, col] of FILTROS_EQ) {
@@ -85,7 +93,6 @@ router.get("/", async (req: Request, res: Response) => {
 
     const whereClause = filters.length > 0 ? and(...filters) : undefined;
 
-    // Quando all=true, retorna todos os registros sem paginação (uso interno: dropdowns)
     if (all === "true") {
       const results = await db.select().from(itens).where(whereClause);
 
@@ -227,7 +234,7 @@ router.post(
 
       const mapearItem = (row: Record<string, string>) => {
         const agora = new Date().toISOString();
-        const col = (key: string) => (row[key] ?? "").trim();
+        const col = (key: string) => sanitize(row[key] ?? "");
         const num = (key: string) =>
           parseFloat(col(key).replace(",", ".")) || 0;
         const int = (key: string) => parseInt(col(key)) || 0;
