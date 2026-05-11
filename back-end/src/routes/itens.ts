@@ -87,6 +87,26 @@ const mapearParaFrontend = (item: any): any => ({
   valorML: item.valorAnuncio?.toString() ?? "",
 });
 
+// ─── Sets de tipos numéricos ──────────────────────────────────
+const CAMPOS_REAL = new Set([
+  "valorAnuncio",
+  "valorUnitarioFixo",
+  "valorUnitario",
+  "valorComercialVenda",
+  "substituicaoTributariaValor",
+  "medidaInterna",
+  "medidaExterna",
+  "altura",
+  "pesoTotal",
+  "valorTotal",
+  "lucroValor",
+  "acrescimoPercent",
+  "valorSite",
+]);
+
+const CAMPOS_INTEGER = new Set(["quantidadeMinima", "quantidade"]);
+
+// ─── Mapeamento Backend ← Frontend
 const mapearParaBanco = (payload: any): any => {
   const RENOMEAR: Record<string, string> = {
     itensSimilaresCompactibilidade: "itensSimilares",
@@ -106,6 +126,27 @@ const mapearParaBanco = (payload: any): any => {
   if (dados.valorML !== undefined) {
     dados.valorAnuncio = parseFloat(dados.valorML) || 0;
     delete dados.valorML;
+  }
+
+  // Converte string vazia para null/0 nos campos numéricos
+  for (const key of Object.keys(dados)) {
+    if (CAMPOS_REAL.has(key)) {
+      const v = dados[key];
+      if (v === "" || v === null || v === undefined) {
+        dados[key] = null;
+      } else {
+        const parsed = parseFloat(String(v).replace(",", "."));
+        dados[key] = isNaN(parsed) ? null : parsed;
+      }
+    } else if (CAMPOS_INTEGER.has(key)) {
+      const v = dados[key];
+      if (v === "" || v === null || v === undefined) {
+        dados[key] = null;
+      } else {
+        const parsed = parseInt(String(v));
+        dados[key] = isNaN(parsed) ? null : parsed;
+      }
+    }
   }
 
   return filtrarColunas(dados);
