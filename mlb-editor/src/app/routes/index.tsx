@@ -1,7 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import LoginPage from "../../features/auth/ui/pages/LoginPage";
-import RegistroPage from "../../features/auth/ui/pages/RegistroPage";
+import RotaProtegida from "../../features/auth/ui/RotaProtegida";
 
 import DashboardPage from "../../features/dashboard/ui/pages/DashboardPage";
 
@@ -16,28 +16,83 @@ import MontarKitPage from "../../features/kits/ui/pages/MontarKitPage";
 import EmitirNotasPage from "../../features/notas/ui/pages/EmitirNotasPage";
 
 export default function AppRoutes() {
-    return (
-        <BrowserRouter>
-            <Routes>
-                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
-                <Route path="/login" element={<LoginPage />} />
-                // <Route path="/registro" element={<RegistroPage />} />
+        <Route path="/login" element={<LoginPage />} />
 
-                <Route path="/dashboard" element={<DashboardPage />} />
+        <Route
+          path="/dashboard"
+          element={
+            <RotaProtegida>
+              <DashboardPage />
+            </RotaProtegida>
+          }
+        />
 
-                <Route path="/estoque" element={<EstoquePage />} />
-                <Route path="/estoque/busca" element={<BuscaPage />} />
-                <Route path="/estoque/novo" element={<NovoItemPage />} />
-                <Route path="/estoque/resultados" element={<ResultadosBuscaPage />} />
-                <Route path="/estoque/item/:id" element={<ItemPage />} />
+        <Route
+          path="/estoque"
+          element={
+            <RotaProtegida>
+              <EstoquePage />
+            </RotaProtegida>
+          }
+        />
+        <Route
+          path="/estoque/busca"
+          element={
+            <RotaProtegida>
+              <BuscaPage />
+            </RotaProtegida>
+          }
+        />
+        <Route
+          path="/estoque/novo"
+          element={
+            <RotaProtegida>
+              <NovoItemPage />
+            </RotaProtegida>
+          }
+        />
+        <Route
+          path="/estoque/resultados"
+          element={
+            <RotaProtegida>
+              <ResultadosBuscaPage />
+            </RotaProtegida>
+          }
+        />
+        <Route
+          path="/estoque/item/:id"
+          element={
+            <RotaProtegida>
+              <ItemPage />
+            </RotaProtegida>
+          }
+        />
 
-                <Route path="/kits" element={<MontarKitPage />} />
+        <Route
+          path="/kits"
+          element={
+            <RotaProtegida>
+              <MontarKitPage />
+            </RotaProtegida>
+          }
+        />
 
-                <Route path="/emitir-notas" element={<EmitirNotasPage />} />
+        <Route
+          path="/emitir-notas"
+          element={
+            <RotaProtegida>
+              <EmitirNotasPage />
+            </RotaProtegida>
+          }
+        />
 
-                <Route path="*" element={<Navigate to="/login" replace />} />
-            </Routes>
-        </BrowserRouter>
-    );
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
