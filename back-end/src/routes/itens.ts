@@ -8,6 +8,68 @@ import { upload } from "../config/multer";
 
 const router = Router();
 
+// ─── Colunas válidas do schema ────────────────────────────────
+const COLUNAS_VALIDAS = new Set([
+  "codigoItem",
+  "referencia",
+  "marca",
+  "mlb",
+  "observacoesGerais",
+  "conversao",
+  "dataFabricacao",
+  "revisado",
+  "dataAnuncio",
+  "situacaoMl",
+  "sentido",
+  "fornecedor",
+  "garantia",
+  "item",
+  "local",
+  "montadora",
+  "material",
+  "quantidadeMinima",
+  "aplicacoes",
+  "tipoRetentor",
+  "posicao",
+  "alocarParaSite",
+  "reporeSomar",
+  "aplicacoesPossiveis",
+  "setor",
+  "itensSimilares",
+  "unid",
+  "valorAnuncio",
+  "versaoMotor",
+  "valorUnitarioFixo",
+  "valorUnitario",
+  "valorComercialVenda",
+  "substituicaoTributariaValor",
+  "quantidade",
+  "flags",
+  "medidaInterna",
+  "medidaExterna",
+  "altura",
+  "pesoTotal",
+  "historico",
+  "marcaDaAplicacao",
+  "imagemUrl",
+  "pedir",
+  "valorTotal",
+  "lucroTipo",
+  "lucroValor",
+  "acrescimoPercent",
+  "situacaoSite",
+  "dataAnuncioSite",
+  "valorSite",
+  "criadoEm",
+  "atualizadoEm",
+]);
+
+const filtrarColunas = (dados: any): any => {
+  return Object.fromEntries(
+    Object.entries(dados).filter(([key]) => COLUNAS_VALIDAS.has(key)),
+  );
+};
+
 // ─── Sanitização ──────────────────────────────────────────────
 const sanitize = (value: any): any => {
   if (typeof value === "string") {
@@ -46,7 +108,7 @@ const mapearParaBanco = (payload: any): any => {
     delete dados.valorML;
   }
 
-  return dados;
+  return filtrarColunas(dados);
 };
 
 // ─── Config de filtros ────────────────────────────────────────
@@ -95,7 +157,6 @@ router.get("/", async (req: Request, res: Response) => {
 
     if (all === "true") {
       const results = await db.select().from(itens).where(whereClause);
-
       return res.json({
         data: results.map(mapearParaFrontend),
         page: 1,
@@ -144,6 +205,7 @@ router.get("/:id", async (req: Request, res: Response) => {
 
     res.json(mapearParaFrontend(result[0]));
   } catch (error) {
+    console.error("GET /itens/:id →", error);
     res.status(500).json({ error: "Erro ao buscar item" });
   }
 });
@@ -158,6 +220,7 @@ router.post("/", async (req: Request, res: Response) => {
 
     res.status(201).json(mapearParaFrontend(result[0]));
   } catch (error) {
+    console.error("POST /itens →", error);
     res.status(500).json({ error: "Erro ao criar item" });
   }
 });
@@ -203,6 +266,7 @@ router.delete("/:id", async (req: Request, res: Response) => {
 
     res.json({ message: "Item deletado com sucesso", item: result[0] });
   } catch (error) {
+    console.error("DELETE /itens/:id →", error);
     res.status(500).json({ error: "Erro ao deletar item" });
   }
 });
