@@ -1,7 +1,14 @@
-import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
+import {
+  pgTable,
+  text,
+  integer,
+  real,
+  boolean,
+  serial,
+} from "drizzle-orm/pg-core";
 
-export const itens = sqliteTable("itens", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+export const itens = pgTable("itens", {
+  id: serial("id").primaryKey(),
   codigoItem: text("codigo_item"),
   referencia: text("referencia"),
   marca: text("marca"),
@@ -44,7 +51,7 @@ export const itens = sqliteTable("itens", {
   historico: text("historico"),
   marcaDaAplicacao: text("marca_da_aplicacao"),
   imagemUrl: text("imagem_url"),
-  pedir: integer("pedir", { mode: "boolean" }).default(false),
+  pedir: boolean("pedir").default(false),
   valorTotal: real("valor_total").default(0),
   lucroTipo: text("lucro_tipo").default("percent"),
   lucroValor: real("lucro_valor").default(0),
@@ -56,7 +63,7 @@ export const itens = sqliteTable("itens", {
   atualizadoEm: text("atualizado_em"),
 });
 
-export const kits = sqliteTable("kits", {
+export const kits = pgTable("kits", {
   id: text("id").primaryKey(),
   nome: text("nome").notNull(),
   tipo: text("tipo").notNull(),
@@ -64,41 +71,34 @@ export const kits = sqliteTable("kits", {
   criadoEm: text("criado_em"),
 });
 
-/**
- * Tabela unificada de entradas MLB.
- * Uma linha pertence EXCLUSIVAMENTE a um item OU a um kit — nunca aos dois.
- *   item_id  preenchido + kit_id  NULL  → MLB de item
- *   item_id  NULL        + kit_id preenchido → MLB de kit
- *
- * O campo `modelo` é usado principalmente em kits (ex: "TRITON", "PAJERO").
- * Para itens simples fica vazio.
- */
-export const mlbEntries = sqliteTable("mlb_entries", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
-  itemId: integer("item_id").references(() => itens.id, { onDelete: "cascade" }),
+export const mlbEntries = pgTable("mlb_entries", {
+  id: serial("id").primaryKey(),
+  itemId: integer("item_id").references(() => itens.id, {
+    onDelete: "cascade",
+  }),
   kitId: text("kit_id").references(() => kits.id, { onDelete: "cascade" }),
   valor: text("valor").notNull(),
   modelo: text("modelo").default(""),
-  ean: integer("ean", { mode: "boolean" }).default(false),
-  cubagem: integer("cubagem", { mode: "boolean" }).default(false),
-  otimizado: integer("otimizado", { mode: "boolean" }).default(false),
-  full: integer("full", { mode: "boolean" }).default(false),
-  patrocinados: integer("patrocinados", { mode: "boolean" }).default(false),
-  clipe: integer("clipe", { mode: "boolean" }).default(false),
-  revisado: integer("revisado", { mode: "boolean" }).default(false),
+  ean: boolean("ean").default(false),
+  cubagem: boolean("cubagem").default(false),
+  otimizado: boolean("otimizado").default(false),
+  full: boolean("full").default(false),
+  patrocinados: boolean("patrocinados").default(false),
+  clipe: boolean("clipe").default(false),
+  revisado: boolean("revisado").default(false),
   criadoEm: text("criado_em"),
   atualizadoEm: text("atualizado_em"),
 });
 
-export const campoEstilos = sqliteTable("campo_estilos", {
-  id: integer("id").primaryKey({ autoIncrement: true }),
+export const campoEstilos = pgTable("campo_estilos", {
+  id: serial("id").primaryKey(),
   itemId: integer("item_id")
     .notNull()
     .references(() => itens.id, { onDelete: "cascade" }),
   campo: text("campo").notNull(),
   corHex: text("cor_hex"),
-  negrito: integer("negrito", { mode: "boolean" }).default(false),
-  italico: integer("italico", { mode: "boolean" }).default(false),
-  sublinhado: integer("sublinhado", { mode: "boolean" }).default(false),
+  negrito: boolean("negrito").default(false),
+  italico: boolean("italico").default(false),
+  sublinhado: boolean("sublinhado").default(false),
   highlight: text("highlight"),
 });

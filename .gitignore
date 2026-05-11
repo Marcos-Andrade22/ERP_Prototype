@@ -1,2 +1,4 @@
 back-end/database.sqlite-shm
 back-end/database.sqlite-wal
+back-end/database.sqlite
+back-end/.env
