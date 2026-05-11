@@ -1,5 +1,15 @@
+# Back-end
 back-end/database.sqlite-shm
 back-end/database.sqlite-wal
 back-end/database.sqlite
 back-end/.env
 back-end/node_modules/
+back-end/dist/
+
+# Front-end
+mlb-editor/node_modules/
+mlb-editor/dist/
+
+# Sistema
+.DS_Store
+Thumbs.db
