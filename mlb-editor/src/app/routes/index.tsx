@@ -10,6 +10,7 @@ import BuscaPage from "../../features/estoque/ui/pages/BuscaPage";
 import ResultadosBuscaPage from "../../features/estoque/ui/pages/ResultadosBuscaPage";
 import ItemPage from "../../features/estoque/ui/pages/ItemPage";
 import NovoItemPage from "../../features/estoque/ui/pages/NovoItemPage";
+import BuscaMlbPage from "../../features/estoque/ui/pages/BuscaMlbPage";
 
 import MontarKitPage from "../../features/kits/ui/pages/MontarKitPage";
 
@@ -69,6 +70,14 @@ export default function AppRoutes() {
           element={
             <RotaProtegida>
               <ItemPage />
+            </RotaProtegida>
+          }
+        />
+        <Route
+          path="/estoque/busca-mlb"
+          element={
+            <RotaProtegida>
+              <BuscaMlbPage />
             </RotaProtegida>
           }
         />

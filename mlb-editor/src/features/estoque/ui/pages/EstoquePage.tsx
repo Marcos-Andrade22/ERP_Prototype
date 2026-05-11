@@ -7,6 +7,7 @@ export default function EstoquePage() {
         { label: "Buscar Item", descricao: "Pesquisar por código, marca, referência, etc.", rota: "/estoque/busca", emoji: "🔍" },
         { label: "Novo Item", descricao: "Cadastrar um novo item no estoque", rota: "/estoque/novo", emoji: "➕" },
         { label: "Montar Kit", descricao: "Compor e balancear kits de produtos", rota: "/kits", emoji: "🔧" },
+        { label: "Busca por Campos MLB", descricao: "Filtrar itens por campos como patrocinado, full, cubagem, clipe", rota: "/estoque/busca-mlb", emoji: "🏷️" },
     ];
 
     return (
