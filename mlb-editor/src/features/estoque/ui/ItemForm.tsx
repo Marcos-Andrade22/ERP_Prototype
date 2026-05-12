@@ -7,7 +7,6 @@ import { NumberInput } from "../../../components/forms/inputs/NumberInput";
 import { TabMedidas } from "./tabs/TabMedidas";
 import { TabValores } from "./tabs/TabValores";
 import { TabHistorico } from "./tabs/TabHistorico";
-import { TabImagem } from "./tabs/TabImagem";
 import { PanelML } from "./panels/PanelML";
 import { PanelSite } from "./panels/PanelSite";
 import MlbTable from "../../../components/MlbTable";
@@ -51,11 +50,10 @@ export function ItemForm({ initialItem, onDelete, onDuplicate, isNew, onSaveSucc
   const tabBtn = (tab: Tab, label: string) => (
     <button
       onClick={() => setActiveTab(tab)}
-      className={`px-3 py-1 text-[11px] border-r border-gray-300 transition-colors ${
-        activeTab === tab
-          ? "bg-white font-semibold text-gray-900"
-          : "bg-[#dcdcdc] text-gray-600 hover:bg-gray-200"
-      }`}
+      className={`px-3 py-1 text-[11px] border-r border-gray-300 transition-colors ${activeTab === tab
+        ? "bg-white font-semibold text-gray-900"
+        : "bg-[#dcdcdc] text-gray-600 hover:bg-gray-200"
+        }`}
     >
       {label}
     </button>
@@ -64,11 +62,10 @@ export function ItemForm({ initialItem, onDelete, onDuplicate, isNew, onSaveSucc
   const panelBtn = (panel: Panel, label: string) => (
     <button
       onClick={() => setActivePanel(panel)}
-      className={`px-3 py-1 text-[11px] border-r border-gray-300 transition-colors ${
-        activePanel === panel
-          ? "bg-white font-semibold text-gray-900"
-          : "bg-[#dcdcdc] text-gray-600 hover:bg-gray-200"
-      }`}
+      className={`px-3 py-1 text-[11px] border-r border-gray-300 transition-colors ${activePanel === panel
+        ? "bg-white font-semibold text-gray-900"
+        : "bg-[#dcdcdc] text-gray-600 hover:bg-gray-200"
+        }`}
     >
       {label}
     </button>
@@ -144,7 +141,6 @@ export function ItemForm({ initialItem, onDelete, onDuplicate, isNew, onSaveSucc
             {activeTab === "medidas" && <TabMedidas item={item} handleChange={handleChange} />}
             {activeTab === "valores" && <TabValores item={item} handleChange={handleChange} />}
             {activeTab === "historico" && <TabHistorico item={item} handleChange={handleChange} />}
-            {activeTab === "imagem" && <TabImagem item={item} handleChange={handleChange} />}
           </div>
         </div>
 

@@ -19,11 +19,11 @@ export function CheckboxInput({
                 checked={checked}
                 onChange={(e) => onChange(e.target.checked)}
                 disabled={disabled}
-                className={`h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 ${disabled ? "cursor-not-allowed" : "cursor-pointer"
+                className={`h-4 w-4 mr-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 ${disabled ? "cursor-not-allowed" : "cursor-pointer"
                     } ${className}`}
                 {...props}
             />
-            <span className="text-sm text-gray-700">{label}</span>
+            <span className="relative -top-0.5 text-sm text-gray-700">{label}</span>
         </Field>
     );
 }
