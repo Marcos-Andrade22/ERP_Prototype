@@ -13,7 +13,7 @@ import MlbTable from "../../../components/MlbTable";
 import { useCampoEstilos } from "../lib/useCampoEstilos";
 import type { CampoEstilo } from "../lib/campo-estilos-service";
 
-type Tab = "medidas" | "valores" | "historico" | "imagem";
+type Tab = "medidas" | "valores" | "historico";
 type Panel = "ml" | "site";
 
 type Props = {
@@ -135,7 +135,6 @@ export function ItemForm({ initialItem, onDelete, onDuplicate, isNew, onSaveSucc
             {tabBtn("medidas", "Medidas e Compactibilidade")}
             {tabBtn("valores", "Valores Comerciais")}
             {tabBtn("historico", "Histórico e Aplicação")}
-            {tabBtn("imagem", "Imagem")}
           </div>
           <div className="bg-white min-h-[200px]">
             {activeTab === "medidas" && <TabMedidas item={item} handleChange={handleChange} />}
