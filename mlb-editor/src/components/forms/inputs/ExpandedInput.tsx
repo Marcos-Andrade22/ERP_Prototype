@@ -17,6 +17,10 @@ interface Props {
   onClose: () => void;
 }
 
+function removerQuebrasDeLinha(valor: string): string {
+  return valor.replace(/[\r\n]+/g, "");
+}
+
 export function ExpandedInput({ label, value, estilo, onSave, onClose }: Props) {
   const [draft, setDraft] = useState(value);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -68,7 +72,7 @@ export function ExpandedInput({ label, value, estilo, onSave, onClose }: Props) 
           <textarea
             ref={textareaRef}
             value={draft}
-            onChange={e => setDraft(e.target.value)}
+            onChange={e => setDraft(removerQuebrasDeLinha(e.target.value))}
             rows={6}
             className="w-full border border-gray-300 rounded-sm px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 resize-y"
             style={textareaStyle}
