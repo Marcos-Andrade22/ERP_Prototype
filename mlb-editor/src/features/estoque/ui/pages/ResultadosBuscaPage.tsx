@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { itensService } from "../../lib/item-service";
 import { kitsService } from "../../../kits/lib/kits-service";
@@ -7,7 +7,9 @@ import { calcularValorKit } from "../../../kits/lib/kit-calc";
 import type { EstoqueItem } from "../../model/EstoqueItem";
 import type { Kit } from "../../../kits/model/Kit";
 
-// Linha genérica da tabela — pode ser item físico ou kit virtual
+const POR_PAGINA = 50;
+const LIMITE_MAX = 300;
+
 type LinhaEstoque = {
   id?: number;
   isKit?: boolean;
@@ -42,20 +44,19 @@ export default function ResultadosBuscaPage() {
   const [kits, setKits] = useState<Kit[]>([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
+  const [pagina, setPagina] = useState(1);
 
   useEffect(() => {
     const buscar = async () => {
       setLoading(true);
       setErro(null);
+      setPagina(1);
       try {
         const filtros = Object.fromEntries(searchParams.entries());
-
-        // Busca itens e kits em paralelo
         const [resItens, resKits] = await Promise.all([
-          itensService.listar({ ...filtros, limit: 100 }),
+          itensService.listar({ ...filtros, limit: LIMITE_MAX }),
           kitsService.listar(),
         ]);
-
         setItensRaw(resItens.data ?? []);
         setKits(resKits ?? []);
       } catch {
@@ -70,13 +71,10 @@ export default function ResultadosBuscaPage() {
   const filtrosAtivos = Array.from(searchParams.entries());
   const query = filtrosAtivos.map(([, v]) => v.toLowerCase()).join(" ");
 
-  // Filtra kits pelo nome se houver query ativa
   const kitsFiltrados = query
     ? kits.filter(k => k.nome.toLowerCase().includes(query))
     : kits;
 
-  // Mescla itens físicos + kits virtuais
-  // Kits aparecem no topo, separados visualmente
   const linhasKits: LinhaEstoque[] = kitsFiltrados.map(k => kitParaLinha(k, itensRaw));
   const linhasItens: LinhaEstoque[] = itensRaw.map(item => ({
     id: item.id,
@@ -91,6 +89,14 @@ export default function ResultadosBuscaPage() {
 
   const resultados: LinhaEstoque[] = [...linhasKits, ...linhasItens];
 
+  const totalPaginas = Math.max(1, Math.ceil(resultados.length / POR_PAGINA));
+  const paginaAtual = Math.min(pagina, totalPaginas);
+
+  const resultadosPagina = useMemo(() => {
+    const inicio = (paginaAtual - 1) * POR_PAGINA;
+    return resultados.slice(inicio, inicio + POR_PAGINA);
+  }, [resultados, paginaAtual]);
+
   const handleClick = (linha: LinhaEstoque) => {
     if (linha.isKit) {
       navigate(`/kits?editar=${linha.kitId}`);
@@ -99,8 +105,22 @@ export default function ResultadosBuscaPage() {
     }
   };
 
+  const paginasVisiveis = useMemo(() => {
+    const delta = 3;
+    const range: number[] = [];
+    for (
+      let i = Math.max(1, paginaAtual - delta);
+      i <= Math.min(totalPaginas, paginaAtual + delta);
+      i++
+    ) {
+      range.push(i);
+    }
+    return range;
+  }, [paginaAtual, totalPaginas]);
+
   return (
     <div className="min-h-screen p-4 space-y-3 font-sans" style={{ backgroundColor: "#d4d0c8" }}>
+      {/* Topbar */}
       <div
         className="flex items-center gap-3 px-4 py-3 text-white"
         style={{ backgroundColor: "#22252A" }}
@@ -124,9 +144,8 @@ export default function ResultadosBuscaPage() {
         {/* Cabeçalho da tabela */}
         <div
           className="grid px-3 py-2 text-[11px] font-semibold text-white border-b border-gray-400"
-          style={{ backgroundColor: "#22252A", gridTemplateColumns: "80px 1fr 100px 120px 70px 70px 80px" }}
+          style={{ backgroundColor: "#22252A", gridTemplateColumns: "1fr 100px 120px 70px 70px 80px" }}
         >
-          <div className="text-center">Tipo</div>
           <div>Item</div>
           <div>Marca</div>
           <div>Referência</div>
@@ -147,7 +166,7 @@ export default function ResultadosBuscaPage() {
           </div>
         )}
 
-        {!loading && resultados.map((linha, index) => (
+        {!loading && resultadosPagina.map((linha, index) => (
           <div
             key={linha.isKit ? `kit-${linha.kitId}` : (linha.id ?? index)}
             onClick={() => handleClick(linha)}
@@ -156,20 +175,14 @@ export default function ResultadosBuscaPage() {
                 ? "bg-[#f0f4ff] hover:bg-[#e4eaff]"
                 : index % 2 === 0 ? "bg-white hover:bg-orange-50" : "bg-[#f5f5f5] hover:bg-orange-50"
               }`}
-            style={{ gridTemplateColumns: "80px 1fr 100px 120px 70px 70px 80px" }}
+            style={{ gridTemplateColumns: "1fr 100px 120px 70px 70px 80px" }}
           >
-            {/* Badge de tipo */}
-            <div className="text-center">
-              {linha.isKit ? (
-                <span className="inline-block px-1.5 py-0.5 text-[10px] font-bold bg-blue-600 text-white rounded-sm">
+            <div className="font-medium text-gray-900 truncate">
+              {linha.isKit && (
+                <span className="inline-block mr-2 px-1.5 py-0.5 text-[10px] font-bold bg-blue-600 text-white rounded-sm">
                   {linha.referencia.toUpperCase()}
                 </span>
-              ) : (
-                <span className="text-gray-400 text-[10px]">{linha.codigoItem || "—"}</span>
               )}
-            </div>
-
-            <div className="font-medium text-gray-900 truncate">
               {linha.item}
               {linha.isKit && (
                 <span className="ml-2 text-[10px] text-blue-500">↗ ver kit</span>
@@ -179,7 +192,6 @@ export default function ResultadosBuscaPage() {
             <div className="text-gray-600 truncate">{linha.marca || "—"}</div>
             <div className="text-gray-500 truncate">{linha.isKit ? "—" : linha.referencia}</div>
 
-            {/* Quantidade com cor por criticidade */}
             <div
               className="text-center font-semibold tabular-nums"
               style={{
@@ -198,11 +210,70 @@ export default function ResultadosBuscaPage() {
           </div>
         ))}
 
+        {/* Rodapé com contagem e paginação */}
         {!loading && resultados.length > 0 && (
-          <div className="px-3 py-2 text-[11px] text-gray-500 bg-[#ececec] border-t border-gray-300 flex gap-4">
-            <span>{linhasKits.length} kit(s)</span>
-            <span>{linhasItens.length} item(ns)</span>
-            <span className="ml-auto">{resultados.length} total</span>
+          <div className="px-3 py-2 bg-[#ececec] border-t border-gray-300 flex flex-wrap items-center gap-3">
+            <span className="text-[11px] text-gray-500">{linhasKits.length} kit(s)</span>
+            <span className="text-[11px] text-gray-500">{linhasItens.length} item(ns)</span>
+            <span className="text-[11px] text-gray-400">•</span>
+            <span className="text-[11px] text-gray-500">
+              Exibindo {(paginaAtual - 1) * POR_PAGINA + 1}–{Math.min(paginaAtual * POR_PAGINA, resultados.length)} de {resultados.length}
+              {resultados.length === LIMITE_MAX && (
+                <span className="ml-1 text-orange-600 font-semibold">(limite de {LIMITE_MAX} atingido)</span>
+              )}
+            </span>
+
+            {totalPaginas > 1 && (
+              <div className="ml-auto flex items-center gap-1">
+                <button
+                  onClick={() => setPagina(1)}
+                  disabled={paginaAtual === 1}
+                  className="px-2 py-1 text-[11px] border border-gray-400 bg-white hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  title="Primeira página"
+                >
+                  «
+                </button>
+                <button
+                  onClick={() => setPagina(p => Math.max(1, p - 1))}
+                  disabled={paginaAtual === 1}
+                  className="px-2 py-1 text-[11px] border border-gray-400 bg-white hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  title="Página anterior"
+                >
+                  ‹
+                </button>
+
+                {paginasVisiveis.map(n => (
+                  <button
+                    key={n}
+                    onClick={() => setPagina(n)}
+                    className={`px-2.5 py-1 text-[11px] border transition-colors ${
+                      n === paginaAtual
+                        ? "border-orange-500 bg-orange-500 text-white font-bold"
+                        : "border-gray-400 bg-white hover:bg-gray-100 text-gray-700"
+                    }`}
+                  >
+                    {n}
+                  </button>
+                ))}
+
+                <button
+                  onClick={() => setPagina(p => Math.min(totalPaginas, p + 1))}
+                  disabled={paginaAtual === totalPaginas}
+                  className="px-2 py-1 text-[11px] border border-gray-400 bg-white hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  title="Próxima página"
+                >
+                  ›
+                </button>
+                <button
+                  onClick={() => setPagina(totalPaginas)}
+                  disabled={paginaAtual === totalPaginas}
+                  className="px-2 py-1 text-[11px] border border-gray-400 bg-white hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  title="Última página"
+                >
+                  »
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
