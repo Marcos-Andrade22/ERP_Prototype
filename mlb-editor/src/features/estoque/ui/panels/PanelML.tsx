@@ -94,7 +94,7 @@ export function PanelML({ item, handleChange }: Props) {
             </div>
 
             <div className="mt-1 pt-2 border-t border-gray-200">
-                <TextInput
+                <DateInput
                     label="Revisado:"
                     value={item.revisado}
                     onChange={handleChange("revisado")}
