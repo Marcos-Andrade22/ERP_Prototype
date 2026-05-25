@@ -9,4 +9,5 @@ export type MlbItem = {
   patrocinados: boolean;
   clipe: boolean;
   revisado: boolean;
+  foto: boolean;
 };

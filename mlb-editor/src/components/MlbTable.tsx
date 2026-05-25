@@ -10,6 +10,7 @@ const FLAGS: { key: keyof Omit<MlbEntryInput, "valor" | "modelo">; label: string
   { key: "patrocinados", label: "Patrocin." },
   { key: "clipe",        label: "Clipe" },
   { key: "revisado",     label: "Revisado" },
+  { key: "foto",         label: "Foto" },
 ];
 
 const MLB_VAZIO = (): MlbEntryInput => ({
@@ -22,6 +23,7 @@ const MLB_VAZIO = (): MlbEntryInput => ({
   patrocinados: false,
   clipe: false,
   revisado: false,
+  foto: false,
 });
 
 interface Props {

@@ -18,6 +18,7 @@ export interface MlbEntry {
   patrocinados: boolean;
   clipe: boolean;
   revisado: boolean;
+  foto: boolean;
 }
 
 export type MlbEntryInput = Omit<MlbEntry, "id" | "itemId" | "kitId">;
@@ -46,6 +47,7 @@ export function parsearMlbBruto(raw: string): MlbEntryInput[] {
       patrocinados: false,
       clipe: false,
       revisado: false,
+      foto: false,
     });
   }
   return entradas;
