@@ -8,13 +8,14 @@ type CampoMlb = {
 };
 
 const CAMPOS_MLB: CampoMlb[] = [
-  { key: "ean",         label: "EAN" },
-  { key: "cubagem",     label: "Cubagem" },
-  { key: "otimizado",   label: "Otimizado" },
-  { key: "full",        label: "Full" },
+  { key: "ean",          label: "EAN" },
+  { key: "cubagem",      label: "Cubagem" },
+  { key: "otimizado",    label: "Otimizado" },
+  { key: "full",         label: "Full" },
   { key: "patrocinados", label: "Patrocinado" },
-  { key: "clipe",       label: "Clipe" },
-  { key: "revisado",    label: "Revisado" },
+  { key: "clipe",        label: "Clipe" },
+  { key: "revisado",     label: "Revisado" },
+  { key: "foto",         label: "Foto" },
 ];
 
 type ResultadoMlb = {
@@ -96,7 +97,7 @@ export default function BuscaMlbPage() {
             Selecione os campos e os valores desejados:
           </p>
 
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
             {CAMPOS_MLB.map(({ key, label }) => (
               <div key={key} className="bg-white border border-blue-200 p-3 space-y-2">
                 <p className="text-[11px] font-bold text-gray-700 uppercase">{label}</p>
