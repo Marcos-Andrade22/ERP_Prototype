@@ -24,9 +24,10 @@ type MlbPayload = {
   patrocinados: boolean;
   clipe: boolean;
   revisado: boolean;
+  foto: boolean;
 };
 
-const CAMPOS_BOOL = ["ean", "cubagem", "otimizado", "full", "patrocinados", "clipe", "revisado"] as const;
+const CAMPOS_BOOL = ["ean", "cubagem", "otimizado", "full", "patrocinados", "clipe", "revisado", "foto"] as const;
 type CampoBool = typeof CAMPOS_BOOL[number];
 
 // ─── GET /mlb/buscar ─────────────────────────────────────────
@@ -72,6 +73,7 @@ router.get("/buscar", async (req: Request, res: Response) => {
         patrocinados:        mlbEntries.patrocinados,
         clipe:               mlbEntries.clipe,
         revisado:            mlbEntries.revisado,
+        foto:                mlbEntries.foto,
       })
       .from(mlbEntries)
       .innerJoin(itens, eq(mlbEntries.itemId, itens.id))
@@ -165,6 +167,7 @@ router.put("/", async (req: Request, res: Response) => {
           patrocinados: mlb.patrocinados ?? false,
           clipe: mlb.clipe ?? false,
           revisado: mlb.revisado ?? false,
+          foto: mlb.foto ?? false,
           criadoEm: agora,
           atualizadoEm: agora,
         }))
