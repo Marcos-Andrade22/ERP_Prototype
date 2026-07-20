@@ -25,20 +25,17 @@ type MlbPayload = {
   clipe: boolean;
   revisado: boolean;
   foto: boolean;
+  dataAnuncio?: string | null;
 };
 
 const CAMPOS_BOOL = ["ean", "cubagem", "otimizado", "full", "patrocinados", "clipe", "revisado", "foto"] as const;
 type CampoBool = typeof CAMPOS_BOOL[number];
 
 // ─── GET /mlb/buscar ─────────────────────────────────────────
-// Query params: ean=true, cubagem=false, etc. (qualquer combinação)
-// Retorna: array de { item, mlbEntry } para os itens que possuem
-// pelo menos uma mlb_entry satisfazendo TODOS os filtros informados.
 router.get("/buscar", async (req: Request, res: Response) => {
   try {
     const query = req.query as Record<string, string>;
 
-    // Monta filtros booleanos a partir dos query params
     const filtros: Partial<Record<CampoBool, boolean>> = {};
     for (const campo of CAMPOS_BOOL) {
       if (query[campo] !== undefined && query[campo] !== "") {
@@ -51,10 +48,8 @@ router.get("/buscar", async (req: Request, res: Response) => {
       return;
     }
 
-    // Busca todas as mlb_entries de itens (sem kit) com JOIN nos itens
     const rows = await db
       .select({
-        // Campos do item
         itemId:              itens.id,
         item:                itens.item,
         marca:               itens.marca,
@@ -62,7 +57,6 @@ router.get("/buscar", async (req: Request, res: Response) => {
         quantidade:          itens.quantidade,
         quantidadeMinima:    itens.quantidadeMinima,
         setor:               itens.setor,
-        // Campos da mlb_entry
         mlbId:               mlbEntries.id,
         mlbValor:            mlbEntries.valor,
         mlbModelo:           mlbEntries.modelo,
@@ -74,19 +68,18 @@ router.get("/buscar", async (req: Request, res: Response) => {
         clipe:               mlbEntries.clipe,
         revisado:            mlbEntries.revisado,
         foto:                mlbEntries.foto,
+        dataAnuncio:         mlbEntries.dataAnuncio,
       })
       .from(mlbEntries)
       .innerJoin(itens, eq(mlbEntries.itemId, itens.id))
       .where(isNull(mlbEntries.kitId));
 
-    // Filtra em memória pelos campos booleanos solicitados
     const filtrados = rows.filter(row =>
       (Object.entries(filtros) as [CampoBool, boolean][]).every(
         ([campo, valor]) => row[campo] === valor
       )
     );
 
-    // Deduplica por itemId (pode haver múltiplos MLBs por item)
     const vistos = new Set<number>();
     const resultado = filtrados.filter(row => {
       if (vistos.has(row.itemId!)) return false;
@@ -168,6 +161,7 @@ router.put("/", async (req: Request, res: Response) => {
           clipe: mlb.clipe ?? false,
           revisado: mlb.revisado ?? false,
           foto: mlb.foto ?? false,
+          dataAnuncio: mlb.dataAnuncio ?? null,
           criadoEm: agora,
           atualizadoEm: agora,
         }))

@@ -87,6 +87,7 @@ export const mlbEntries = pgTable("mlb_entries", {
   clipe: boolean("clipe").default(false),
   revisado: boolean("revisado").default(false),
   foto: boolean("foto").default(false),
+  dataAnuncio: text("data_anuncio"),
   criadoEm: text("criado_em"),
   atualizadoEm: text("atualizado_em"),
 });

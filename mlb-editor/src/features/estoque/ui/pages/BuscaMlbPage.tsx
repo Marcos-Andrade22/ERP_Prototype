@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../../../../shared/lib/api";
 
@@ -39,6 +39,9 @@ export default function BuscaMlbPage() {
   const [loading, setLoading] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
 
+  // Rastreia se o mouse moveu entre mousedown e click para detectar seleção de texto
+  const mouseDownPosRef = useRef<{ x: number; y: number } | null>(null);
+
   const toggleCampo = (key: string, valor: boolean) => {
     setSelecionados(prev => ({
       ...prev,
@@ -69,6 +72,24 @@ export default function BuscaMlbPage() {
     setSelecionados(Object.fromEntries(CAMPOS_MLB.map(c => [c.key, null])));
     setResultados(null);
     setErro(null);
+  };
+
+  const handleRowMouseDown = (e: React.MouseEvent) => {
+    mouseDownPosRef.current = { x: e.clientX, y: e.clientY };
+  };
+
+  const handleRowClick = (itemId: number, e: React.MouseEvent) => {
+    // Se o usuário arrastou o mouse (seleção de texto), não navega
+    if (mouseDownPosRef.current) {
+      const dx = Math.abs(e.clientX - mouseDownPosRef.current.x);
+      const dy = Math.abs(e.clientY - mouseDownPosRef.current.y);
+      if (dx > 4 || dy > 4) {
+        mouseDownPosRef.current = null;
+        return;
+      }
+    }
+    mouseDownPosRef.current = null;
+    navigate(`/estoque/item/${itemId}`);
   };
 
   return (
@@ -176,7 +197,8 @@ export default function BuscaMlbPage() {
             {resultados.map((item, index) => (
               <div
                 key={item.itemId ?? index}
-                onClick={() => navigate(`/estoque/item/${item.itemId}`)}
+                onMouseDown={handleRowMouseDown}
+                onClick={e => handleRowClick(item.itemId, e)}
                 className={`grid px-3 py-2 text-[11px] border-b border-gray-200 cursor-pointer transition-colors ${
                   index % 2 === 0 ? "bg-white hover:bg-orange-50" : "bg-[#f5f5f5] hover:bg-orange-50"
                 }`}

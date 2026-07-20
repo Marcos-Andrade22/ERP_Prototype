@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useMlb } from "../features/estoque/lib/useMlb";
 import { parsearMlbBruto, type MlbEntryInput } from "../shared/lib/mlb-service";
 
-const FLAGS: { key: keyof Omit<MlbEntryInput, "valor" | "modelo">; label: string }[] = [
+const FLAGS: { key: keyof Omit<MlbEntryInput, "valor" | "modelo" | "dataAnuncio">; label: string }[] = [
   { key: "ean",          label: "EAN" },
   { key: "cubagem",      label: "Cubagem" },
   { key: "otimizado",    label: "Otimizado" },
@@ -24,6 +24,7 @@ const MLB_VAZIO = (): MlbEntryInput => ({
   clipe: false,
   revisado: false,
   foto: false,
+  dataAnuncio: null,
 });
 
 interface Props {
@@ -100,7 +101,7 @@ export default function MlbTable({ itemId, nomeItem }: Props) {
           style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
           onClick={e => { if (e.target === e.currentTarget) setIsModalOpen(false); }}
         >
-          <div className="bg-white flex flex-col" style={{ width: "960px", maxWidth: "95vw", maxHeight: "90vh" }}>
+          <div className="bg-white flex flex-col" style={{ width: "1080px", maxWidth: "95vw", maxHeight: "90vh" }}>
 
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 text-white shrink-0" style={{ backgroundColor: "#22252A" }}>
@@ -149,6 +150,7 @@ export default function MlbTable({ itemId, nomeItem }: Props) {
                   <tr className="bg-[#dcdcdc] text-gray-700">
                     <th className="text-left px-3 py-2 border-b border-gray-300 font-semibold w-36">MLB</th>
                     <th className="text-left px-3 py-2 border-b border-gray-300 font-semibold w-36">Modelo</th>
+                    <th className="text-left px-3 py-2 border-b border-gray-300 font-semibold w-32">Data Anúncio</th>
                     {FLAGS.map(f => (
                       <th key={f.key} className="text-center px-2 py-2 border-b border-gray-300 font-semibold w-20">{f.label}</th>
                     ))}
@@ -157,7 +159,7 @@ export default function MlbTable({ itemId, nomeItem }: Props) {
                 </thead>
                 <tbody>
                   {lista.length === 0 && (
-                    <tr><td colSpan={FLAGS.length + 3} className="text-center py-8 text-gray-400 text-[11px]">Nenhum MLB cadastrado. Use "+ Adicionar linha" ou importe um texto bruto.</td></tr>
+                    <tr><td colSpan={FLAGS.length + 4} className="text-center py-8 text-gray-400 text-[11px]">Nenhum MLB cadastrado. Use "+ Adicionar linha" ou importe um texto bruto.</td></tr>
                   )}
                   {lista.map((entry, index) => {
                     const invalido = entry.valor !== "" && !/^\d{10}$/.test(entry.valor);
@@ -178,6 +180,14 @@ export default function MlbTable({ itemId, nomeItem }: Props) {
                             onChange={e => atualizar(index, "modelo", e.target.value.toUpperCase())}
                             className="w-full px-2 py-1 border border-gray-300 text-[11px] focus:outline-none focus:ring-1 focus:ring-blue-400"
                             placeholder="Ex: TRITON"
+                          />
+                        </td>
+                        <td className="px-2 py-1">
+                          <input
+                            type="date"
+                            value={entry.dataAnuncio ?? ""}
+                            onChange={e => atualizar(index, "dataAnuncio", e.target.value || null)}
+                            className="w-full px-2 py-1 border border-gray-300 text-[11px] focus:outline-none focus:ring-1 focus:ring-blue-400"
                           />
                         </td>
                         {FLAGS.map(f => (
