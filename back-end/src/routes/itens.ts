@@ -60,6 +60,7 @@ const COLUNAS_VALIDAS = new Set([
   "situacaoSite",
   "dataAnuncioSite",
   "valorSite",
+  "verificado",
   "criadoEm",
   "atualizadoEm",
 ]);
@@ -294,6 +295,35 @@ router.put("/:id", async (req: Request, res: Response) => {
   }
 });
 
+// ─── PATCH /itens/:id/verificado ─────────────────────────────
+router.patch("/:id/verificado", async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id);
+    const { verificado } = req.body as { verificado: boolean };
+
+    if (typeof verificado !== "boolean") {
+      res.status(400).json({ error: "Campo verificado deve ser boolean" });
+      return;
+    }
+
+    const result = await db
+      .update(itens)
+      .set({ verificado, atualizadoEm: new Date().toISOString() })
+      .where(eq(itens.id, id))
+      .returning();
+
+    if (result.length === 0) {
+      res.status(404).json({ error: "Item não encontrado" });
+      return;
+    }
+
+    res.json({ id, verificado: result[0].verificado });
+  } catch (error) {
+    console.error("PATCH /itens/:id/verificado →", error);
+    res.status(500).json({ error: "Erro ao atualizar verificado" });
+  }
+});
+
 // ─── DELETE /itens/:id ────────────────────────────────────────
 router.delete("/:id", async (req: Request, res: Response) => {
   try {
@@ -389,6 +419,7 @@ router.post(
           pesoTotal: num("col_79"),
           historico: col("col_84"),
           pedir: col("col_73").toLowerCase().includes("pedir"),
+          verificado: false,
           criadoEm: agora,
           atualizadoEm: agora,
         };

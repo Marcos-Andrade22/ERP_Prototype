@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { itensService } from "../../lib/item-service";
 import { kitsService } from "../../../kits/lib/kits-service";
@@ -22,6 +22,7 @@ type LinhaEstoque = {
   quantidadeMinima?: number;
   setor: string;
   valor?: string;
+  verificado?: boolean;
 };
 
 const kitParaLinha = (kit: Kit, itens: EstoqueItem[]): LinhaEstoque => ({
@@ -45,6 +46,7 @@ export default function ResultadosBuscaPage() {
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
   const [pagina, setPagina] = useState(1);
+  const [verificadoMap, setVerificadoMap] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
     const buscar = async () => {
@@ -57,8 +59,15 @@ export default function ResultadosBuscaPage() {
           itensService.listar({ ...filtros, limit: LIMITE_MAX }),
           kitsService.listar(),
         ]);
-        setItensRaw(resItens.data ?? []);
+        const itensBuscados: EstoqueItem[] = resItens.data ?? [];
+        setItensRaw(itensBuscados);
         setKits(resKits ?? []);
+        // inicializa o mapa de verificado com os valores vindos do banco
+        const mapa: Record<number, boolean> = {};
+        for (const item of itensBuscados) {
+          if (item.id !== undefined) mapa[item.id] = item.verificado ?? false;
+        }
+        setVerificadoMap(mapa);
       } catch {
         setErro("Erro ao buscar itens. Verifique a conexão com o servidor.");
       } finally {
@@ -67,6 +76,26 @@ export default function ResultadosBuscaPage() {
     };
     buscar();
   }, [searchParams]);
+
+  const handleToggleVerificado = useCallback(
+    async (e: React.MouseEvent, id: number) => {
+      e.stopPropagation();
+      const novoValor = !verificadoMap[id];
+      // atualização otimista
+      setVerificadoMap(prev => ({ ...prev, [id]: novoValor }));
+      try {
+        await fetch(`/api/itens/${id}/verificado`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ verificado: novoValor }),
+        });
+      } catch {
+        // reverte em caso de erro
+        setVerificadoMap(prev => ({ ...prev, [id]: !novoValor }));
+      }
+    },
+    [verificadoMap],
+  );
 
   const filtrosAtivos = Array.from(searchParams.entries());
   const query = filtrosAtivos.map(([, v]) => v.toLowerCase()).join(" ");
@@ -85,6 +114,7 @@ export default function ResultadosBuscaPage() {
     quantidade: item.quantidade,
     quantidadeMinima: item.quantidadeMinima,
     setor: item.setor ?? "",
+    verificado: item.id !== undefined ? (verificadoMap[item.id] ?? false) : false,
   }));
 
   const resultados: LinhaEstoque[] = [...linhasKits, ...linhasItens];
@@ -144,8 +174,9 @@ export default function ResultadosBuscaPage() {
         {/* Cabeçalho da tabela */}
         <div
           className="grid px-3 py-2 text-[11px] font-semibold text-white border-b border-gray-400"
-          style={{ backgroundColor: "#22252A", gridTemplateColumns: "1fr 100px 120px 70px 70px 80px" }}
+          style={{ backgroundColor: "#22252A", gridTemplateColumns: "32px 1fr 100px 120px 70px 70px 80px" }}
         >
+          <div className="flex items-center justify-center" title="Verificado">✓</div>
           <div>Item</div>
           <div>Marca</div>
           <div>Referência</div>
@@ -171,12 +202,31 @@ export default function ResultadosBuscaPage() {
             key={linha.isKit ? `kit-${linha.kitId}` : (linha.id ?? index)}
             onClick={() => handleClick(linha)}
             className={`grid px-3 py-2 text-[11px] border-b border-gray-200 cursor-pointer transition-colors
-              ${linha.isKit
-                ? "bg-[#f0f4ff] hover:bg-[#e4eaff]"
-                : index % 2 === 0 ? "bg-white hover:bg-orange-50" : "bg-[#f5f5f5] hover:bg-orange-50"
+              ${
+                linha.verificado && !linha.isKit
+                  ? "bg-green-50 hover:bg-green-100"
+                  : linha.isKit
+                  ? "bg-[#f0f4ff] hover:bg-[#e4eaff]"
+                  : index % 2 === 0 ? "bg-white hover:bg-orange-50" : "bg-[#f5f5f5] hover:bg-orange-50"
               }`}
-            style={{ gridTemplateColumns: "1fr 100px 120px 70px 70px 80px" }}
+            style={{ gridTemplateColumns: "32px 1fr 100px 120px 70px 70px 80px" }}
           >
+            {/* Coluna checkbox verificado */}
+            <div className="flex items-center justify-center" onClick={e => e.stopPropagation()}>
+              {!linha.isKit && linha.id !== undefined ? (
+                <input
+                  type="checkbox"
+                  checked={verificadoMap[linha.id] ?? false}
+                  onChange={() => {}}
+                  onClick={e => handleToggleVerificado(e, linha.id!)}
+                  className="w-3.5 h-3.5 cursor-pointer accent-green-600"
+                  title={verificadoMap[linha.id] ? "Marcar como não verificado" : "Marcar como verificado"}
+                />
+              ) : (
+                <span className="text-gray-300 text-[10px]">—</span>
+              )}
+            </div>
+
             <div className="font-medium text-gray-900 truncate">
               {linha.isKit && (
                 <span className="inline-block mr-2 px-1.5 py-0.5 text-[10px] font-bold bg-blue-600 text-white rounded-sm">
@@ -221,6 +271,9 @@ export default function ResultadosBuscaPage() {
               {resultados.length === LIMITE_MAX && (
                 <span className="ml-1 text-orange-600 font-semibold">(limite de {LIMITE_MAX} atingido)</span>
               )}
+            </span>
+            <span className="text-[11px] text-green-700 font-medium">
+              ✓ {linhasItens.filter(l => l.id !== undefined && verificadoMap[l.id!]).length} verificado(s)
             </span>
 
             {totalPaginas > 1 && (

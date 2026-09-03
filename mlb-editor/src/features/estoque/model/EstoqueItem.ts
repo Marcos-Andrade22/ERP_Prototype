@@ -1,6 +1,6 @@
 export interface EstoqueItem {
   // Identificação
-  id?: number; // ← adiciona essa linha no topo
+  id?: number;
   codigoItem: string;
   item: string;
   unid: string;
@@ -67,6 +67,9 @@ export interface EstoqueItem {
   revisado: string;
   alocarParaSite: string;
   reporeSomar: string;
+
+  // Verificação
+  verificado?: boolean;
 
   // Imagem
   imagem: string;
