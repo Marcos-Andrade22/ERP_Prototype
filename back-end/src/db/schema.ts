@@ -59,6 +59,7 @@ export const itens = pgTable("itens", {
   situacaoSite: text("situacao_site"),
   dataAnuncioSite: text("data_anuncio_site"),
   valorSite: real("valor_site").default(0),
+  verificado: boolean("verificado").default(false),
   criadoEm: text("criado_em"),
   atualizadoEm: text("atualizado_em"),
 });
